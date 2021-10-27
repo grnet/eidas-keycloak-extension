@@ -57,7 +57,8 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
             String issuerURL = getEntityId(uriInfo, realm);
             String destinationUrl = getConfig().getSingleSignOnServiceUrl();
             String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
-
+            String eidasLOA = getConfig().eidasLOA;
+            
             if (nameIDPolicyFormat == null) {
                 nameIDPolicyFormat =  JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get();
             }
@@ -83,7 +84,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 			 SAML2RequestedAuthnContextBuilder requestedAuthnContext =new SAML2RequestedAuthnContextBuilder()
                     .setComparison(AuthnContextComparisonType.MINIMUM);
 
-			requestedAuthnContext.addAuthnContextClassRef("http://eidas.europa.eu/LoA/high");
+			requestedAuthnContext.addAuthnContextClassRef(eidasLOA);
 
 			Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
