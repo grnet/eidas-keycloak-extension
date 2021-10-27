@@ -34,195 +34,200 @@ import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.util.JsonSerialization;
 
-
 public class EidasIdentityProvider extends SAMLIdentityProvider {
 
-    private final EidasIdentityProviderConfig config ;
-    
-    public EidasIdentityProvider(KeycloakSession session, EidasIdentityProviderConfig config, DestinationValidator destinationValidator) {
-        super(session, config, destinationValidator);
-        this.config = config;
-    }
-	
-    @Override
-    public EidasIdentityProviderConfig getConfig(){
-        return this.config;
-    }
+	private final EidasIdentityProviderConfig config;
+
+	public EidasIdentityProvider(KeycloakSession session, EidasIdentityProviderConfig config,
+			DestinationValidator destinationValidator) {
+		super(session, config, destinationValidator);
+		this.config = config;
+	}
 
 	@Override
-    public Response performLogin(AuthenticationRequest request) {
-        try {
-            UriInfo uriInfo = request.getUriInfo();
-            RealmModel realm = request.getRealm();
-            String issuerURL = getEntityId(uriInfo, realm);
-            String destinationUrl = getConfig().getSingleSignOnServiceUrl();
-            String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
+	public EidasIdentityProviderConfig getConfig() {
+		return this.config;
+	}
 
-            
-            if (nameIDPolicyFormat == null) {
-                nameIDPolicyFormat =  JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get();
-            }
+	@Override
+	public Response performLogin(AuthenticationRequest request) {
+		try {
+			UriInfo uriInfo = request.getUriInfo();
+			RealmModel realm = request.getRealm();
+			String issuerURL = getEntityId(uriInfo, realm);
+			String destinationUrl = getConfig().getSingleSignOnServiceUrl();
+			String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
 
-            String protocolBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
+			if (nameIDPolicyFormat == null) {
+				nameIDPolicyFormat = JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get();
+			}
 
-            String assertionConsumerServiceUrl = request.getRedirectUri();
+			String protocolBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.get();
 
-            if (getConfig().isPostBindingResponse()) {
-                protocolBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
-            }
+			String assertionConsumerServiceUrl = request.getRedirectUri();
 
-            // SAML2RequestedAuthnContextBuilder requestedAuthnContext =
-            //     new SAML2RequestedAuthnContextBuilder()
-            //         .setComparison(getConfig().getAuthnContextComparisonType());
+			if (getConfig().isPostBindingResponse()) {
+				protocolBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
+			}
 
-            // for (String authnContextClassRef : getAuthnContextClassRefUris())
-            //     requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
+			// SAML2RequestedAuthnContextBuilder requestedAuthnContext =
+			// new SAML2RequestedAuthnContextBuilder()
+			// .setComparison(getConfig().getAuthnContextComparisonType());
 
-            // for (String authnContextDeclRef : getAuthnContextDeclRefUris())
-            //     requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
+			// for (String authnContextClassRef : getAuthnContextClassRefUris())
+			// requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
 
-			 SAML2RequestedAuthnContextBuilder requestedAuthnContext =new SAML2RequestedAuthnContextBuilder()
-                    .setComparison(getConfig().getAuthnContextComparisonType());
+			// for (String authnContextDeclRef : getAuthnContextDeclRefUris())
+			// requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
+
+			SAML2RequestedAuthnContextBuilder requestedAuthnContext = new SAML2RequestedAuthnContextBuilder()
+					.setComparison(getConfig().getAuthnContextComparisonType());
 
 			requestedAuthnContext.addAuthnContextClassRef(getConfig().getLevelOfAssurance());
 
 			Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
-            String loginHint = getConfig().isLoginHint() ? request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM) : null;
-            Boolean allowCreate = null;
-            if (getConfig().getConfig().get(SAMLIdentityProviderConfig.ALLOW_CREATE) == null || getConfig().isAllowCreate())
-                allowCreate = Boolean.TRUE;
-            SAML2AuthnRequestBuilder authnRequestBuilder = new EidasSAML2AuthnRequestBuilder()
-                    .assertionConsumerUrl(assertionConsumerServiceUrl)
-                    .destination(destinationUrl)
-                    .issuer(issuerURL)
-                    .forceAuthn(getConfig().isForceAuthn())
-                    .protocolBinding(protocolBinding)
-                    .nameIdPolicy(SAML2NameIDPolicyBuilder
-                        .format(nameIDPolicyFormat)
-                        .setAllowCreate(allowCreate))
-                    .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
-                    .requestedAuthnContext(requestedAuthnContext)
-                    .subject(loginHint);
-            
+			String loginHint = getConfig().isLoginHint()
+					? request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM)
+					: null;
+			Boolean allowCreate = null;
+			if (getConfig().getConfig().get(SAMLIdentityProviderConfig.ALLOW_CREATE) == null
+					|| getConfig().isAllowCreate())
+				allowCreate = Boolean.TRUE;
+			SAML2AuthnRequestBuilder authnRequestBuilder = new EidasSAML2AuthnRequestBuilder()
+					.assertionConsumerUrl(assertionConsumerServiceUrl).destination(destinationUrl).issuer(issuerURL)
+					.forceAuthn(getConfig().isForceAuthn()).protocolBinding(protocolBinding)
+					.nameIdPolicy(SAML2NameIDPolicyBuilder.format(nameIDPolicyFormat).setAllowCreate(allowCreate))
+					.attributeConsumingServiceIndex(attributeConsumingServiceIndex)
+					.requestedAuthnContext(requestedAuthnContext).subject(loginHint);
+
 			authnRequestBuilder.addExtension(new EidasExtensionGenerator());
 
+			JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
+					.relayState(request.getState().getEncoded());
+			boolean postBinding = getConfig().isPostBindingAuthnRequest();
 
-            JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
-                    .relayState(request.getState().getEncoded());
-            boolean postBinding = getConfig().isPostBindingAuthnRequest();
+			if (getConfig().isWantAuthnRequestsSigned()) {
+				KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
 
-            if (getConfig().isWantAuthnRequestsSigned()) {
-                KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
+				String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(),
+						keys.getCertificate());
+				binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
+						.signatureAlgorithm(getSignatureAlgorithm()).signDocument();
+				if (!postBinding && getConfig().isAddExtensionsElementWithKeyInfo()) { // Only include extension if
+																						// REDIRECT binding and signing
+																						// whole SAML protocol message
+					authnRequestBuilder.addExtension(new KeycloakKeySamlExtensionGenerator(keyName));
+				}
+			}
 
-                String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(), keys.getCertificate());
-                binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
-                        .signatureAlgorithm(getSignatureAlgorithm())
-                        .signDocument();
-                if (! postBinding && getConfig().isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
-                    authnRequestBuilder.addExtension(new KeycloakKeySamlExtensionGenerator(keyName));
-                }
-            }
+			AuthnRequestType authnRequest = authnRequestBuilder.createAuthnRequest();
 
-            AuthnRequestType authnRequest = authnRequestBuilder.createAuthnRequest();
-			
-            for(Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils.getSamlAuthenticationPreprocessorIterator(session); it.hasNext(); ) {
-                authnRequest = it.next().beforeSendingLoginRequest(authnRequest, request.getAuthenticationSession());
-            }
+			for (Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils
+					.getSamlAuthenticationPreprocessorIterator(session); it.hasNext();) {
+				authnRequest = it.next().beforeSendingLoginRequest(authnRequest, request.getAuthenticationSession());
+			}
 
-            if (authnRequest.getDestination() != null) {
-                destinationUrl = authnRequest.getDestination().toString();
-            }
+			if (authnRequest.getDestination() != null) {
+				destinationUrl = authnRequest.getDestination().toString();
+			}
 
-            // Save the current RequestID in the Auth Session as we need to verify it against the ID returned from the IdP
-            request.getAuthenticationSession().setClientNote(SamlProtocol.SAML_REQUEST_ID, authnRequest.getID());
+			// Save the current RequestID in the Auth Session as we need to verify it
+			// against the ID returned from the IdP
+			request.getAuthenticationSession().setClientNote(SamlProtocol.SAML_REQUEST_ID, authnRequest.getID());
 
-            if (postBinding) {
-                return binding.postBinding(authnRequestBuilder.toDocument()).request(destinationUrl);
-            } else {
-                return binding.redirectBinding(authnRequestBuilder.toDocument()).request(destinationUrl);
-            }
-        } catch (Exception e) {
-            throw new IdentityBrokerException("Could not create authentication request.", e);
-        }
-    }
+			if (postBinding) {
+				return binding.postBinding(authnRequestBuilder.toDocument()).request(destinationUrl);
+			} else {
+				return binding.redirectBinding(authnRequestBuilder.toDocument()).request(destinationUrl);
+			}
+		} catch (Exception e) {
+			throw new IdentityBrokerException("Could not create authentication request.", e);
+		}
+	}
 
 	private List<String> getAuthnContextClassRefUris() {
-        String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
-        if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
-            return new LinkedList<String>();
+		String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
+		if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
+			return new LinkedList<String>();
 
-        try {
-            return Arrays.asList(JsonSerialization.readValue(authnContextClassRefs, String[].class));
-        } catch (Exception e) {
-            logger.warn("Could not json-deserialize AuthContextClassRefs config entry: " + authnContextClassRefs, e);
-            return new LinkedList<String>();
-        }
-    }
+		try {
+			return Arrays.asList(JsonSerialization.readValue(authnContextClassRefs, String[].class));
+		} catch (Exception e) {
+			logger.warn("Could not json-deserialize AuthContextClassRefs config entry: " + authnContextClassRefs, e);
+			return new LinkedList<String>();
+		}
+	}
 
-    private List<String> getAuthnContextDeclRefUris() {
-        String authnContextDeclRefs = getConfig().getAuthnContextDeclRefs();
-        if (authnContextDeclRefs == null || authnContextDeclRefs.isEmpty())
-            return new LinkedList<String>();
+	private List<String> getAuthnContextDeclRefUris() {
+		String authnContextDeclRefs = getConfig().getAuthnContextDeclRefs();
+		if (authnContextDeclRefs == null || authnContextDeclRefs.isEmpty())
+			return new LinkedList<String>();
 
-        try {
-            return Arrays.asList(JsonSerialization.readValue(authnContextDeclRefs, String[].class));
-        } catch (Exception e) {
-            logger.warn("Could not json-deserialize AuthContextDeclRefs config entry: " + authnContextDeclRefs, e);
-            return new LinkedList<String>();
-        }
-    }
-	
+		try {
+			return Arrays.asList(JsonSerialization.readValue(authnContextDeclRefs, String[].class));
+		} catch (Exception e) {
+			logger.warn("Could not json-deserialize AuthContextDeclRefs config entry: " + authnContextDeclRefs, e);
+			return new LinkedList<String>();
+		}
+	}
+
 	private String getEntityId(UriInfo uriInfo, RealmModel realm) {
-        String configEntityId = getConfig().getEntityId();
+		String configEntityId = getConfig().getEntityId();
 
-        if (configEntityId == null || configEntityId.isEmpty())
-            return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
-        else
-            return configEntityId;
-    }
-	
-	private static class EidasExtensionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
+		if (configEntityId == null || configEntityId.isEmpty())
+			return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+		else
+			return configEntityId;
+	}
 
+	private class EidasExtensionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
+
+		public static final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions";
+		public static final String EIDAS_PREFIX = "eidas";
+		
 		@Override
 		public void write(XMLStreamWriter writer) throws ProcessingException {
-			final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions"; 
-			StaxUtil.writeNameSpace(writer, "eidas", EIDAS_NS_URI);
+			StaxUtil.writeNameSpace(writer, EIDAS_PREFIX, EIDAS_NS_URI);
 
-			StaxUtil.writeStartElement(writer, "eidas", "SPType", EIDAS_NS_URI);
-			StaxUtil.writeCData(writer, "public");
+			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "SPType", EIDAS_NS_URI);
+			if (getConfig().isPrivateServiceProvider()) { 
+				StaxUtil.writeCData(writer, "private");
+			} else { 
+				StaxUtil.writeCData(writer, "public");
+			}
 			StaxUtil.writeEndElement(writer);
 
-			StaxUtil.writeStartElement(writer, "eidas", "RequestedAttributes", EIDAS_NS_URI);
-			
-			StaxUtil.writeStartElement(writer, "eidas", "RequestedAttribute", EIDAS_NS_URI);
+			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttributes", EIDAS_NS_URI);
+
+			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
 			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier");
 			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
 			StaxUtil.writeAttribute(writer, "isRequired", "true");
 			StaxUtil.writeEndElement(writer);
 
-			StaxUtil.writeStartElement(writer, "eidas", "RequestedAttribute", EIDAS_NS_URI);
-			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName");
+			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
+			StaxUtil.writeAttribute(writer, "Name",
+					"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName");
 			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
 			StaxUtil.writeAttribute(writer, "isRequired", "true");
 			StaxUtil.writeEndElement(writer);
 
-			StaxUtil.writeStartElement(writer, "eidas", "RequestedAttribute", EIDAS_NS_URI);
+			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
 			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName");
 			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
 			StaxUtil.writeAttribute(writer, "isRequired", "true");
 			StaxUtil.writeEndElement(writer);
 
-			StaxUtil.writeStartElement(writer, "eidas", "RequestedAttribute", EIDAS_NS_URI);
+			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
 			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth");
 			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
 			StaxUtil.writeAttribute(writer, "isRequired", "true");
 			StaxUtil.writeEndElement(writer);
-			
+
 			StaxUtil.writeEndElement(writer);
 
 			StaxUtil.flush(writer);
 		}
 	}
 }
-

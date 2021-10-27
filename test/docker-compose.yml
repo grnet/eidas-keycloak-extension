@@ -26,6 +26,7 @@ services:
         - postgres
       volumes:
         - ./deployments:/opt/jboss/keycloak/standalone/deployments/
+        - ./disable-theme-cache.cli:/opt/jboss/startup-scripts/disable-theme-cache.cli          
  postgres:
       image: postgres
       volumes:
