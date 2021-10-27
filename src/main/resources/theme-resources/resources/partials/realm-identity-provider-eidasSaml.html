@@ -382,6 +382,28 @@
                 <kc-tooltip>{{:: 'identity-provider.saml.authncontext-decl-ref.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
+        <fieldset>
+            <legend uncollapsed><span class="text">{{:: 'identity-provider.eidas.saml.eidas-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.eidas.saml.eidas-config.tooltip' | translate}}</kc-tooltip></legend>
+
+            <div class="form-group clearfix block">
+                <label class="col-md-2 control-label" for="levelOfAssurance">{{:: 'identity-provider.eidas.saml.level-of-assurance' | translate}}</label>
+                <div class="col-md-6">
+                    <div>
+                        <input class="form-control" id="levelOfAssurance" type="text" ng-model="identityProvider.config.levelOfAssurance">
+                    </div>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.eidas.saml.level-of-assurance.tooltip' | translate}}</kc-tooltip>
+            </div>
+        
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="privateServiceProvider">{{:: 'identity-provider.eidas.saml.private-service-provider' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.privateServiceProvider" id="privateServiceProvider" name="privateServiceProvider" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.eidas.saml.private-service-provider.tooltip' | translate}}</kc-tooltip>
+            </div>            
+        </fieldset>
+        
         <fieldset data-ng-show="newIdentityProvider">
             <legend uncollapsed><span class="text">{{:: 'import-external-idp-config' | translate}}</span> <kc-tooltip>{{:: 'import-external-idp-config.tooltip' | translate}}</kc-tooltip></legend>
             <div class="form-group" data-ng-show="newIdentityProvider">
@@ -417,23 +439,6 @@
             </div>
         </fieldset>
 
-        <div class="form-group clearfix block">
-            <label class="col-md-2 control-label" for="levelOfAssurance">{{:: 'identity-provider.eidas.saml.level-of-assurance' | translate}}</label>
-            <div class="col-md-6">
-                <div>
-                    <input class="form-control" id="levelOfAssurance" type="text" ng-model="identityProvider.config.levelOfAssurance">
-                </div>
-            </div>
-            <kc-tooltip>{{:: 'identity-provider.eidas.saml.level-of-assurance.tooltip' | translate}}</kc-tooltip>
-        </div>
-        
-        <div class="form-group">
-            <label class="col-md-2 control-label" for="privateServiceProvider">{{:: 'identity-provider.eidas.saml.private-service-provider' | translate}}</label>
-                <div class="col-md-6">
-                    <input ng-model="identityProvider.config.privateServiceProvider" id="privateServiceProvider" name="privateServiceProvider" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
-                </div>
-                <kc-tooltip>{{:: 'identity-provider.eidas.saml.private-service-provider.tooltip' | translate}}</kc-tooltip>
-            </div>
 
         <div class="form-group">
             <div class="col-md-10 col-md-offset-2">
