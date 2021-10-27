@@ -4,15 +4,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.stream.XMLStreamWriter;
+
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.saml.SAMLIdentityProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
-import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
@@ -36,12 +37,11 @@ import org.keycloak.util.JsonSerialization;
 
 public class EidasIdentityProvider extends SAMLIdentityProvider {
 
-    private final DestinationValidator destinationValidator;
     private final EidasIdentityProviderConfig config ;
+    
     public EidasIdentityProvider(KeycloakSession session, EidasIdentityProviderConfig config, DestinationValidator destinationValidator) {
         super(session, config, destinationValidator);
         this.config = config;
-        this.destinationValidator = destinationValidator;
     }
 	
     @Override
@@ -57,7 +57,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
             String issuerURL = getEntityId(uriInfo, realm);
             String destinationUrl = getConfig().getSingleSignOnServiceUrl();
             String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
-            String eidasLOA = getConfig().eidasLOA;
+
             
             if (nameIDPolicyFormat == null) {
                 nameIDPolicyFormat =  JBossSAMLURIConstants.NAMEID_FORMAT_PERSISTENT.get();
@@ -84,7 +84,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 			 SAML2RequestedAuthnContextBuilder requestedAuthnContext =new SAML2RequestedAuthnContextBuilder()
                     .setComparison(getConfig().getAuthnContextComparisonType());
 
-			requestedAuthnContext.addAuthnContextClassRef(eidasLOA);
+			requestedAuthnContext.addAuthnContextClassRef(getConfig().getLevelOfAssurance());
 
 			Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
@@ -104,6 +104,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
                     .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
                     .requestedAuthnContext(requestedAuthnContext)
                     .subject(loginHint);
+            
 			authnRequestBuilder.addExtension(new EidasExtensionGenerator());
 
 
@@ -171,8 +172,6 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
             return new LinkedList<String>();
         }
     }
-
-
 	
 	private String getEntityId(UriInfo uriInfo, RealmModel realm) {
         String configEntityId = getConfig().getEntityId();

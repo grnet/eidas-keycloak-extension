@@ -1,14 +1,19 @@
 package gr.grnet.keycloak.idp;
 
+import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.ASSERTION_NSURI;
+import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.PROTOCOL_NSURI;
 
-import org.keycloak.dom.saml.v2.assertion.AttributeType;
+import java.net.URI;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.protocol.ArtifactResolveType;
-import org.keycloak.dom.saml.v2.protocol.AttributeQueryType;
 import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
+import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 import org.keycloak.dom.saml.v2.protocol.NameIDPolicyType;
 import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 import org.keycloak.saml.common.constants.JBossSAMLConstants;
@@ -18,26 +23,14 @@ import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLRequestWriter;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamWriter;
-import java.net.URI;
-import java.util.List;
-import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
-
-import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.ASSERTION_NSURI;
-import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT;
-import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.PROTOCOL_NSURI;
-
 /**
  * Writes a SAML2 Request Type to Stream
- *
- * @author Anil.Saldhana@redhat.com
- * @since Nov 2, 2010
  */
 public class EidasSAMLRequestWriter extends SAMLRequestWriter {
 
     public static final String EIDAS_PREFIX = "eidas";
     public static final String EIDAS_NS = "http://eidas.europa.eu/saml-extensions";
+    
     public EidasSAMLRequestWriter(XMLStreamWriter writer) {
         super(writer);
     }
@@ -142,97 +135,6 @@ public class EidasSAMLRequestWriter extends SAMLRequestWriter {
     }
 
     /**
-     * Write a {@code LogoutRequestType} to stream
-     *
-     * @param logOutRequest
-     *
-     * @throws ProcessingException
-     */
-    public void write(LogoutRequestType logOutRequest) throws ProcessingException {
-        StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.LOGOUT_REQUEST.get(), PROTOCOL_NSURI.get());
-
-        StaxUtil.writeNameSpace(writer, PROTOCOL_PREFIX, PROTOCOL_NSURI.get());
-        StaxUtil.writeNameSpace(writer, ASSERTION_PREFIX, ASSERTION_NSURI.get());
-        StaxUtil.writeDefaultNameSpace(writer, ASSERTION_NSURI.get());
-
-        // Attributes
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.ID.get(), logOutRequest.getID());
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.VERSION.get(), logOutRequest.getVersion());
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.ISSUE_INSTANT.get(), logOutRequest.getIssueInstant().toString());
-
-        URI destination = logOutRequest.getDestination();
-        if (destination != null) {
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.DESTINATION.get(), destination.toASCIIString());
-        }
-
-        String consent = logOutRequest.getConsent();
-        if (StringUtil.isNotNull(consent))
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.CONSENT.get(), consent);
-
-        NameIDType issuer = logOutRequest.getIssuer();
-        write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX));
-
-        Element signature = logOutRequest.getSignature();
-        if (signature != null) {
-            StaxUtil.writeDOMElement(writer, signature);
-        }
-
-        ExtensionsType extensions = logOutRequest.getExtensions();
-        if (extensions != null && ! extensions.getAny().isEmpty()) {
-            write(extensions);
-        }
-
-        NameIDType nameID = logOutRequest.getNameID();
-        if (nameID != null) {
-            write(nameID, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.NAMEID.get(), ASSERTION_PREFIX));
-        }
-
-        List<String> sessionIndexes = logOutRequest.getSessionIndex();
-
-        for (String sessionIndex : sessionIndexes) {
-            StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.SESSION_INDEX.get(), PROTOCOL_NSURI.get());
-
-            StaxUtil.writeCharacters(writer, sessionIndex);
-
-            StaxUtil.writeEndElement(writer);
-            StaxUtil.flush(writer);
-        }
-
-        StaxUtil.writeEndElement(writer);
-        StaxUtil.flush(writer);
-    }
-
-    /**
-     * Write a {@code NameIDPolicyType} to stream
-     *
-     * @param nameIDPolicy
-     *
-     * @throws ProcessingException
-     */
-    public void write(NameIDPolicyType nameIDPolicy) throws ProcessingException {
-        StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.NAMEID_POLICY.get(), PROTOCOL_NSURI.get());
-
-        URI format = nameIDPolicy.getFormat();
-        if (format != null) {
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.FORMAT.get(), format.toASCIIString());
-        }
-
-        String spNameQualifier = nameIDPolicy.getSPNameQualifier();
-        if (StringUtil.isNotNull(spNameQualifier)) {
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.SP_NAME_QUALIFIER.get(), spNameQualifier);
-        }
-
-        Boolean allowCreate = nameIDPolicy.isAllowCreate();
-        // The NameID AllowCreate attribute must not be used when using the transient NameID format.
-        if (allowCreate != null && (format == null || !NAMEID_FORMAT_TRANSIENT.get().equals(format.toASCIIString()))) {
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.ALLOW_CREATE.get(), allowCreate.toString());
-        }
-
-        StaxUtil.writeEndElement(writer);
-        StaxUtil.flush(writer);
-    }
-
-    /**
      * Write a {@code RequestedAuthnContextType} to stream
      *
      * @param requestedAuthnContextType
@@ -270,91 +172,6 @@ public class EidasSAMLRequestWriter extends SAMLRequestWriter {
             }
         }
 
-        StaxUtil.writeEndElement(writer);
-        StaxUtil.flush(writer);
-    }
-
-    public void write(ArtifactResolveType request) throws ProcessingException {
-        StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.ARTIFACT_RESOLVE.get(), PROTOCOL_NSURI.get());
-        StaxUtil.writeNameSpace(writer, PROTOCOL_PREFIX, PROTOCOL_NSURI.get());
-        StaxUtil.writeNameSpace(writer, ASSERTION_PREFIX, ASSERTION_NSURI.get());
-        StaxUtil.writeDefaultNameSpace(writer, ASSERTION_NSURI.get());
-
-        // Attributes
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.ID.get(), request.getID());
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.VERSION.get(), request.getVersion());
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.ISSUE_INSTANT.get(), request.getIssueInstant().toString());
-
-        URI destination = request.getDestination();
-        if (destination != null)
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.DESTINATION.get(), destination.toASCIIString());
-
-        String consent = request.getConsent();
-        if (StringUtil.isNotNull(consent))
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.CONSENT.get(), consent);
-
-        NameIDType issuer = request.getIssuer();
-        if (issuer != null) {
-            write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX));
-        }
-        Element sig = request.getSignature();
-        if (sig != null) {
-            StaxUtil.writeDOMElement(writer, sig);
-        }
-        ExtensionsType extensions = request.getExtensions();
-        if (extensions != null && ! extensions.getAny().isEmpty()) {
-            write(extensions);
-        }
-
-        String artifact = request.getArtifact();
-        if (StringUtil.isNotNull(artifact)) {
-            StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.ARTIFACT.get(), PROTOCOL_NSURI.get());
-            StaxUtil.writeCharacters(writer, artifact);
-            StaxUtil.writeEndElement(writer);
-        }
-        StaxUtil.writeEndElement(writer);
-        StaxUtil.flush(writer);
-    }
-
-    public void write(AttributeQueryType request) throws ProcessingException {
-        StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.ATTRIBUTE_QUERY.get(), PROTOCOL_NSURI.get());
-        StaxUtil.writeNameSpace(writer, PROTOCOL_PREFIX, PROTOCOL_NSURI.get());
-        StaxUtil.writeNameSpace(writer, ASSERTION_PREFIX, ASSERTION_NSURI.get());
-        StaxUtil.writeDefaultNameSpace(writer, ASSERTION_NSURI.get());
-
-        // Attributes
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.ID.get(), request.getID());
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.VERSION.get(), request.getVersion());
-        StaxUtil.writeAttribute(writer, JBossSAMLConstants.ISSUE_INSTANT.get(), request.getIssueInstant().toString());
-
-        URI destination = request.getDestination();
-        if (destination != null)
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.DESTINATION.get(), destination.toASCIIString());
-
-        String consent = request.getConsent();
-        if (StringUtil.isNotNull(consent))
-            StaxUtil.writeAttribute(writer, JBossSAMLConstants.CONSENT.get(), consent);
-
-        NameIDType issuer = request.getIssuer();
-        if (issuer != null) {
-            write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX));
-        }
-        Element sig = request.getSignature();
-        if (sig != null) {
-            StaxUtil.writeDOMElement(writer, sig);
-        }
-        ExtensionsType extensions = request.getExtensions();
-        if (extensions != null && ! extensions.getAny().isEmpty()) {
-            write(extensions);
-        }
-        SubjectType subject = request.getSubject();
-        if (subject != null) {
-            write(subject);
-        }
-        List<AttributeType> attributes = request.getAttribute();
-        for (AttributeType attr : attributes) {
-            write(attr);
-        }
         StaxUtil.writeEndElement(writer);
         StaxUtil.flush(writer);
     }

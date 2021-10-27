@@ -417,16 +417,15 @@
             </div>
         </fieldset>
 
-
         <div class="form-group clearfix block">
-            <label class="col-md-2 control-label" for="eidasLOA">{{:: 'EIDAS_LOA' | translate}}</label>
+            <label class="col-md-2 control-label" for="levelOfAssurance">{{:: 'identity-provider.eidas.saml.level-of-assurance' | translate}}</label>
             <div class="col-md-6">
                 <div>
-                    <input class="form-control" id="eidasLOA" type="text" ng-model="identityProvider.config.eidasLOA">
+                    <input class="form-control" id="levelOfAssurance" type="text" ng-model="identityProvider.config.levelOfAssurance">
                 </div>
             </div>
+            <kc-tooltip>{{:: 'identity-provider.eidas.saml.level-of-assurance.tooltip' | translate}}</kc-tooltip>
         </div>
-
 
         <div class="form-group">
             <div class="col-md-10 col-md-offset-2">
