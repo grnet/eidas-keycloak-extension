@@ -82,7 +82,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
             //     requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
 
 			 SAML2RequestedAuthnContextBuilder requestedAuthnContext =new SAML2RequestedAuthnContextBuilder()
-                    .setComparison(AuthnContextComparisonType.MINIMUM);
+                    .setComparison(getConfig().getAuthnContextComparisonType());
 
 			requestedAuthnContext.addAuthnContextClassRef(eidasLOA);
 
@@ -104,7 +104,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
                     .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
                     .requestedAuthnContext(requestedAuthnContext)
                     .subject(loginHint);
-			authnRequestBuilder.addExtension(new MyNodeGenerator());
+			authnRequestBuilder.addExtension(new EidasExtentionGenerator());
 
 
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
@@ -183,7 +183,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
             return configEntityId;
     }
 	
-	private static class MyNodeGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
+	private static class EidasExtentionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
 
 		@Override
 		public void write(XMLStreamWriter writer) throws ProcessingException {
