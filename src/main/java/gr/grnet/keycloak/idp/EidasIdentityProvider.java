@@ -81,7 +81,6 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 			for (String authnContextDeclRef : getAuthnContextDeclRefUris())
 				requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
 
-
 			Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
 			String loginHint = getConfig().isLoginHint()
@@ -143,18 +142,18 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 		}
 	}
 
-	private List<RequestedAttribute> getRequestedAttributes() { 
+	private List<RequestedAttribute> getRequestedAttributes() {
 		String requestedAttributes = getConfig().getRequestedAttributes();
 		if (requestedAttributes == null || requestedAttributes.isEmpty())
 			return List.of();
-		try { 
+		try {
 			return Arrays.asList(JsonSerialization.readValue(requestedAttributes, RequestedAttribute[].class));
-		} catch(Exception e) { 
+		} catch (Exception e) {
 			logger.warn("Could not json-deserialize RequestedAttribute config entry: " + requestedAttributes, e);
 			return List.of();
 		}
 	}
-	
+
 	private List<String> getAuthnContextClassRefUris() {
 		String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
 		if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
@@ -194,63 +193,33 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 
 		public static final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions";
 		public static final String EIDAS_PREFIX = "eidas";
-		
+
 		@Override
 		public void write(XMLStreamWriter writer) throws ProcessingException {
 			StaxUtil.writeNameSpace(writer, EIDAS_PREFIX, EIDAS_NS_URI);
 
 			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "SPType", EIDAS_NS_URI);
-			if (getConfig().isPrivateServiceProvider()) { 
+			if (getConfig().isPrivateServiceProvider()) {
 				StaxUtil.writeCData(writer, "private");
-			} else { 
+			} else {
 				StaxUtil.writeCData(writer, "public");
 			}
 			StaxUtil.writeEndElement(writer);
-			
+
 			List<RequestedAttribute> requestedAttributes = getRequestedAttributes();
-			if (!requestedAttributes.isEmpty()) { 
+			if (!requestedAttributes.isEmpty()) {
 				StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttributes", EIDAS_NS_URI);
-				
-				for(RequestedAttribute ra: requestedAttributes) { 
+
+				for (RequestedAttribute ra : requestedAttributes) {
 					StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
 					StaxUtil.writeAttribute(writer, "Name", ra.getName());
 					StaxUtil.writeAttribute(writer, "NameFormat", ra.getNameFormat());
 					StaxUtil.writeAttribute(writer, "isRequired", String.valueOf(ra.isRequired()));
 					StaxUtil.writeEndElement(writer);
 				}
-				
+
 				StaxUtil.writeEndElement(writer);
 			}
-
-			//StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttributes", EIDAS_NS_URI);
-
-			/*StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
-			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier");
-			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
-			StaxUtil.writeAttribute(writer, "isRequired", "true");
-			StaxUtil.writeEndElement(writer);
-
-			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
-			StaxUtil.writeAttribute(writer, "Name",
-					"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName");
-			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
-			StaxUtil.writeAttribute(writer, "isRequired", "true");
-			StaxUtil.writeEndElement(writer);
-
-			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
-			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName");
-			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
-			StaxUtil.writeAttribute(writer, "isRequired", "true");
-			StaxUtil.writeEndElement(writer);
-
-			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
-			StaxUtil.writeAttribute(writer, "Name", "http://eidas.europa.eu/attributes/naturalperson/DateOfBirth");
-			StaxUtil.writeAttribute(writer, "NameFormat", "urn:oasis:names:tc:SAML:2.0:attrname-format:uri");
-			StaxUtil.writeAttribute(writer, "isRequired", "true");
-			StaxUtil.writeEndElement(writer);
-			*/
-
-			//StaxUtil.writeEndElement(writer);
 
 			StaxUtil.flush(writer);
 		}

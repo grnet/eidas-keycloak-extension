@@ -5,6 +5,8 @@ import org.keycloak.models.IdentityProviderModel;
 
 public class EidasIdentityProviderConfig extends SAMLIdentityProviderConfig {
 
+	private static final long serialVersionUID = 3296255033084690635L;
+	
 	public static final String LEVEL_OF_ASSURANCE = "levelOfAssurance";
 	public static final String PRIVATE_SERVICE_PROVIDER = "privateServiceProvider";
 	public static final String REQUESTED_ATTRIBUTES = "requestedAttributes";

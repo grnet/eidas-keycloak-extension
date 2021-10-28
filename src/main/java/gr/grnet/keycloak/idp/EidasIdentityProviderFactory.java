@@ -19,7 +19,7 @@ public class EidasIdentityProviderFactory extends SAMLIdentityProviderFactory {
 
 	@Override
 	public String getName() {
-		return "eID.AS SAML";
+		return "eIDAS SAML";
 	}
 
 	@Override

@@ -10,7 +10,7 @@ public class EidasSAML2AuthnRequestBuilder extends SAML2AuthnRequestBuilder {
 		try {
 			AuthnRequestType authnRequestType = createAuthnRequest();
 
-			return new EidasSAML2Request().convert(authnRequestType);
+			return EidasSAML2Request.convert(authnRequestType);
 		} catch (Exception e) {
 			throw new RuntimeException("Could not convert  to a document.", e);
 		}
