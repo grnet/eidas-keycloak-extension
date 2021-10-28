@@ -7,6 +7,7 @@ public class EidasIdentityProviderConfig extends SAMLIdentityProviderConfig {
 
 	public static final String LEVEL_OF_ASSURANCE = "levelOfAssurance";
 	public static final String PRIVATE_SERVICE_PROVIDER = "privateServiceProvider";
+	public static final String REQUESTED_ATTRIBUTES = "requestedAttributes";
 
 	public EidasIdentityProviderConfig() {
 	}
@@ -22,13 +23,21 @@ public class EidasIdentityProviderConfig extends SAMLIdentityProviderConfig {
 	public void setLevelOfAssurance(String levelOfAssurance) {
 		getConfig().put(LEVEL_OF_ASSURANCE, levelOfAssurance);
 	}
-	
-    public boolean isPrivateServiceProvider() {
-        return Boolean.valueOf(getConfig().get(PRIVATE_SERVICE_PROVIDER));
-    }
 
-    public void setPrivateServiceProvider(boolean privateServiceProvider) {
-        getConfig().put(PRIVATE_SERVICE_PROVIDER, String.valueOf(privateServiceProvider));
-    }
+	public boolean isPrivateServiceProvider() {
+		return Boolean.valueOf(getConfig().get(PRIVATE_SERVICE_PROVIDER));
+	}
+
+	public void setPrivateServiceProvider(boolean privateServiceProvider) {
+		getConfig().put(PRIVATE_SERVICE_PROVIDER, String.valueOf(privateServiceProvider));
+	}
+
+	public void setRequestedAttributes(String requestedAttributes) {
+		getConfig().put(REQUESTED_ATTRIBUTES, requestedAttributes);
+	}
+
+	public String getRequestedAttributes() {
+		return getConfig().get(REQUESTED_ATTRIBUTES);
+	}
 
 }

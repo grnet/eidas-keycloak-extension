@@ -1,4 +1,4 @@
-<!-- <div data-ng-include data-src="resourceUrl + '/partials/realm-identity-provider-saml.html'"></div> -->
+
 <div class="col-sm-9 col-md-10 col-sm-push-3 col-md-push-2" data-ng-init="initSamlProvider()">
     <ol class="breadcrumb">
         <li><a href="#/realms/{{realm.realm}}/identity-provider-settings">{{:: 'identity-providers' | translate}}</a></li>
@@ -384,7 +384,7 @@
         </fieldset>
         <fieldset>
             <legend uncollapsed><span class="text">{{:: 'identity-provider.eidas.saml.eidas-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.eidas.saml.eidas-config.tooltip' | translate}}</kc-tooltip></legend>
-
+           
             <div class="form-group clearfix block">
                 <label class="col-md-2 control-label" for="levelOfAssurance">{{:: 'identity-provider.eidas.saml.level-of-assurance' | translate}}</label>
                 <div class="col-md-6">
@@ -395,13 +395,23 @@
                 <kc-tooltip>{{:: 'identity-provider.eidas.saml.level-of-assurance.tooltip' | translate}}</kc-tooltip>
             </div>
         
-            <div class="form-group">
+            <div class="form-group clearfix block">
                 <label class="col-md-2 control-label" for="privateServiceProvider">{{:: 'identity-provider.eidas.saml.private-service-provider' | translate}}</label>
                 <div class="col-md-6">
                     <input ng-model="identityProvider.config.privateServiceProvider" id="privateServiceProvider" name="privateServiceProvider" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.eidas.saml.private-service-provider.tooltip' | translate}}</kc-tooltip>
-            </div>            
+            </div>
+            
+            <div class="form-group clearfix block">
+                <label class="col-md-2 control-label" for="requestedAttributes">{{:: 'identity-provider.eidas.saml.requested-attributes' | translate}}</label>
+            
+                <div class="col-md-6">
+                    <textarea class="form-control" type="text" ng-model="identityProvider.config.requestedAttributes" id="requestedAttributes"></textarea>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.eidas.saml.requested-attributes.tooltip' | translate}}</kc-tooltip>
+            </div>
+                        
         </fieldset>
         
         <fieldset data-ng-show="newIdentityProvider">
