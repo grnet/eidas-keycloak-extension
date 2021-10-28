@@ -70,20 +70,17 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 				protocolBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
 			}
 
-			// SAML2RequestedAuthnContextBuilder requestedAuthnContext =
-			// new SAML2RequestedAuthnContextBuilder()
-			// .setComparison(getConfig().getAuthnContextComparisonType());
-
-			// for (String authnContextClassRef : getAuthnContextClassRefUris())
-			// requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
-
-			// for (String authnContextDeclRef : getAuthnContextDeclRefUris())
-			// requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
-
 			SAML2RequestedAuthnContextBuilder requestedAuthnContext = new SAML2RequestedAuthnContextBuilder()
 					.setComparison(getConfig().getAuthnContextComparisonType());
 
 			requestedAuthnContext.addAuthnContextClassRef(getConfig().getLevelOfAssurance());
+
+			for (String authnContextClassRef : getAuthnContextClassRefUris())
+				requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
+
+			for (String authnContextDeclRef : getAuthnContextDeclRefUris())
+				requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
+
 
 			Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
