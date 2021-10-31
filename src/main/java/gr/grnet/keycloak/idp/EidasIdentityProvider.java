@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ArrayList;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -145,12 +146,12 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 	private List<RequestedAttribute> getRequestedAttributes() {
 		String requestedAttributes = getConfig().getRequestedAttributes();
 		if (requestedAttributes == null || requestedAttributes.isEmpty())
-			return List.of();
+			return new ArrayList<>();
 		try {
 			return Arrays.asList(JsonSerialization.readValue(requestedAttributes, RequestedAttribute[].class));
 		} catch (Exception e) {
 			logger.warn("Could not json-deserialize RequestedAttribute config entry: " + requestedAttributes, e);
-			return List.of();
+			return new ArrayList<>();
 		}
 	}
 
@@ -200,9 +201,9 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 
 			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "SPType", EIDAS_NS_URI);
 			if (getConfig().isPrivateServiceProvider()) {
-				StaxUtil.writeCData(writer, "private");
+				StaxUtil.writeCharacters(writer, "private");
 			} else {
-				StaxUtil.writeCData(writer, "public");
+				StaxUtil.writeCharacters(writer, "public");
 			}
 			StaxUtil.writeEndElement(writer);
 
