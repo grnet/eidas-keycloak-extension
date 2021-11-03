@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  ~ Copyright (c) 2020 by European Commission
+  ~
+  ~ Licensed under the EUPL, Version 1.2 or - as soon they will be
+  ~ approved by the European Commission - subsequent versions of the
+  ~ EUPL (the "Licence");
+  ~ You may not use this work except in compliance with the Licence.
+  ~ You may obtain a copy of the Licence at:
+  ~ https://joinup.ec.europa.eu/page/eupl-text-11-12
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the Licence is distributed on an "AS IS" basis,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+  ~ implied.
+  ~ See the Licence for the specific language governing permissions and
+  ~ limitations under the Licence.
+  -->
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+	<comment>SWModule sign with JKS.</comment>
+	<!-- Certificates -->
+	<entry key="check_certificate_validity_period">false</entry>
+	<entry key="disallow_self_signed_certificate">false</entry>
+
+	<!-- Signature with RSA -->
+	<entry key="signature.algorithm">http://www.w3.org/2007/05/xmldsig-more#sha512-rsa-MGF1</entry>
+
+	<entry key="response.sign.assertions">true</entry>
+<!-- Request signature -->	
+	<entry key="keyStorePath">../keystore/eidasKeyStore_Connector_CA.jks</entry>
+	<entry key="keyStorePassword">local-demo</entry>
+	<entry key="keyPassword">local-demo</entry>
+	<entry key="issuer">CN=speps-ca-demo-certificate, OU=STORK, O=SPEPS, L=EU, ST=EU, C=CA</entry>
+	<entry key="serialNumber">54C8FC88</entry>
+	<entry key="keyStoreType">JKS</entry>
+
+	<!-- Metadata signature configuration -->
+	<entry key="metadata.keyStorePath">../keystore/eidasKeyStore_METADATA.jks</entry>
+	<entry key="metadata.keyStorePassword">local-demo</entry>
+	<entry key="metadata.keyPassword">local-demo</entry>
+	<entry key="metadata.issuer">CN=metadata, OU=DIGIT, O=EC, L=Brussels, ST=EU, C=BE</entry>
+	<entry key="metadata.serialNumber">561BC0C8</entry>
+	<entry key="metadata.keyStoreType">JKS</entry>
+
+	<!--configuration for using the metadata keystore with a trust chain-->
+	<!--<entry key="metadata.keyStorePath">../keystore/eidasKeyStore_METADATA_TC.jks</entry>-->
+	<!--<entry key="metadata.keyStorePassword">local-demo</entry>-->
+	<!--<entry key="metadata.keyPassword">local-demo</entry>-->
+	<!-- <entry key="metadata.issuer">CN=intermediateCAMetadata,OU=eID team,O=European Commission,C=EU</entry> -->
+	<!-- <entry key="metadata.serialNumber">B7521C23D31F576B</entry> -->
+	<!--<entry key="metadata.keyStoreType">JKS</entry>-->
+
+</properties>
