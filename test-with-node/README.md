@@ -4,7 +4,7 @@
 Add the following line in `/etc/hosts`
 
 ```
-127.0.0.1 keycloak.test node.test
+127.0.0.1 keycloak.test ca.node.test
 ```
 
 # Realm name
@@ -23,7 +23,7 @@ Keys->rsa-enc-generated->Key size=4096
 Redirect URI: http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint
 Alias: eidasSaml
 Service Provider Entity ID: http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint/descriptor
-Single Sign-On Service URL: http://node.test/SpecificConnector/ServiceProvider
+Single Sign-On Service URL: http://ca.node.test/SpecificConnector/ServiceProvider
 HTTP-POST Binding Response: ON
 HTTP-POST Binding for AuthnRequest: ON
 Want AuthnRequests Signed: ON

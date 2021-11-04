@@ -29,7 +29,7 @@
         <name>tomcat</name>
         <password>dev-pass</password>
     </group>
-    <management-center enabled="false">http://localhost:8080/mancenter</management-center>
+    <management-center enabled="false">http://ca.node.test/mancenter</management-center>
     <network>
         <port auto-increment="true" port-count="99">5501</port>
         <outbound-ports>

@@ -22,15 +22,15 @@
 	<!-- issuer name -->
 	<entry key="issuer.name">specificProxyServiceCA</entry>
 	<!-- the IdP's url to where the simple protocol request is send -->
-	<entry key="idp.url">http://localhost:8080/IdP/AuthenticateCitizen</entry>
+	<entry key="idp.url">http://ca.node.test/IdP/AuthenticateCitizen</entry>
 	<!--thespecific service URL for receiving IdP simple protocol response -->
-    <entry key="specific.proxyservice.idp.response.service.url">http://localhost:8080/SpecificProxyService/IdpResponse
+    <entry key="specific.proxyservice.idp.response.service.url">http://ca.node.test/SpecificProxyService/IdpResponse
     </entry>
 	<!-- the specific service URL for processing IdP simple protocol responses: when specific modules are included in node as JAR-->
-    <entry key="default.specific.proxyservice.idp.response.service.url">http://localhost:8080/EidasNode/IdpResponse
+    <entry key="default.specific.proxyservice.idp.response.service.url">http://ca.node.test/EidasNode/IdpResponse
     </entry>
     <!-- node's url to send the binary light token related to the response -->
-	<entry key="specific.proxyservice.response.url">http://localhost:8080/EidasNode/SpecificProxyServiceResponse</entry>
+	<entry key="specific.proxyservice.response.url">http://ca.node.test/EidasNode/SpecificProxyServiceResponse</entry>
     <!-- ask consent for the request -->
 	<entry key="ask.consent.request">true</entry>
 	<!-- ask consent for the response -->

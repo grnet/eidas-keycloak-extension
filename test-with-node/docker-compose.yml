@@ -19,9 +19,9 @@ services:
       - -c
       - |
         echo 'Waiting keycloak'
-        wait-for keycloak:8080 -t 10 -- echo "Keycloak is up"
+        wait-for keycloak:8080 -t 600 -- echo "Keycloak is up"
         echo 'Waiting node'
-        wait-for tomcat:8080 -t 10 -- echo "Node is up"
+        wait-for tomcat:8080 -t 600 -- echo "Node is up"
         nginx-debug -g 'daemon off;'
     volumes:
       - "${PWD}/etc/nginx/nginx.conf:/etc/nginx/nginx.conf"

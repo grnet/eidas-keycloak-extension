@@ -28,11 +28,11 @@
 
     <!-- Connector  -->
     <!-- Connector assertion URL -->
-	<entry key="connector.assertion.url">http://localhost:8080/EidasNode/ColleagueResponse</entry>
+    <entry key="connector.assertion.url">http://ca.node.test/EidasNode/ColleagueResponse</entry>
 
     <!--connector Metadata -->
     <entry key="connector.contact.email">test@com</entry>
-    <entry key="connector.metadata.url">http://localhost:8080/EidasNode/ConnectorMetadata</entry>
+    <entry key="connector.metadata.url">http://ca.node.test/EidasNode/ConnectorMetadata</entry>
 
     <!-- METADATA configuration -->
     <!-- Connector contact -->
@@ -60,7 +60,7 @@
 
     <!--service Metadata -->
     <entry key="service.contact.email">test@com</entry>
-    <entry key="service.metadata.url">http://localhost:8080/EidasNode/ServiceMetadata</entry>
+    <entry key="service.metadata.url">http://ca.node.test/EidasNode/ServiceMetadata</entry>
 
     <!-- ProxyService contact -->
     <entry key="service.contact.support.email">contact.support@eidas-proxyservice.eu</entry>
@@ -79,8 +79,8 @@
     <entry key="service.organization.url">https://service.sample/info</entry>
 
     <!-- Eidas Node Service Metadata Single Sign On locations for ServiceMetadata-->
-	<entry key="ssos.serviceMetadataGeneratorIDP.redirect.location">http://localhost:8080/EidasNode/ColleagueRequest</entry>
-	<entry key="ssos.serviceMetadataGeneratorIDP.post.location">http://localhost:8080/EidasNode/ColleagueRequest</entry>
+	<entry key="ssos.serviceMetadataGeneratorIDP.redirect.location">http://ca.node.test/EidasNode/ColleagueRequest</entry>
+	<entry key="ssos.serviceMetadataGeneratorIDP.post.location">http://ca.node.test/EidasNode/ColleagueRequest</entry>
 
     <!-- levels of assurance for the IdP of service -->
     <entry key="service.LoA">
@@ -100,7 +100,7 @@
 	<entry key="service1.name">LOCAL-EIDAS-CA</entry>
 	<entry key="service1.skew.notbefore">0</entry>
 	<entry key="service1.skew.notonorafter">0</entry>
-	<entry key="service1.metadata.url">http://localhost:8080/EidasNode/ServiceMetadata</entry>	
+	<entry key="service1.metadata.url">http://ca.node.test/EidasNode/ServiceMetadata</entry>	
 	
     <!-- Proxy-Service CB-->
 	<entry key="service2.id">CB</entry>
@@ -237,7 +237,7 @@
     <!-- This feature once disabled, switch off the content security policy-->
     <entry key="security.header.CSP.enabled">true</entry>
     <!-- uri used for the CSP reporting feature-->
-    <entry key="security.header.CSP.report.uri">http://localhost:8080/EidasNode</entry>
+    <entry key="security.header.CSP.report.uri">http://ca.node.test/EidasNode</entry>
     <!-- Header specific for mozilla browser backwards compatibility : xhr-src: 'self' -->
     <entry key="security.header.CSP.includeMozillaDirectives">true</entry>
     <!-- X-XSS-Protection:1; mode=block -->
@@ -312,9 +312,9 @@
 	<entry key="node.metadata.not.signed.descriptors"></entry>
 	
     <!--URL for specific-proxyService requests receiver only needed when specific  -->
-	<entry key="specific.proxyservice.request.receiver">http://localhost:8080/SpecificProxyService/ProxyServiceRequest</entry>
+	<entry key="specific.proxyservice.request.receiver">http://ca.node.test/SpecificProxyService/ProxyServiceRequest</entry>
 	<!--URL for specific-connector response receiver -->
-	<entry key="specific.connector.response.receiver">http://localhost:8080/SpecificConnector/ConnectorResponse</entry>
+	<entry key="specific.connector.response.receiver">http://ca.node.test/SpecificConnector/ConnectorResponse</entry>
 
 	<!--eidas protocol version value to be published in the node's metadata URLs-->
 	<entry key="eidas.protocol.version">1.2;1.1</entry>
