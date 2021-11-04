@@ -47,15 +47,6 @@
     <entry key="responseToPointIssuer.CB">CN=cpeps-cb-demo-certificate, OU=STORK, O=CPEPS, L=EU, ST=EU, C=CB</entry>
     <entry key="responseToPointSerialNumber.CB">54C8F839</entry>
 
-    <entry key="responseToPointIssuer.CC">CN=cpeps-cc-demo-certificate, OU=STORK, O=CPEPS, L=EU, ST=Eu, C=CC</entry>
-    <entry key="responseToPointSerialNumber.CC">54C8F8C4</entry>
-
-    <entry key="responseToPointIssuer.CD">CN=cpeps-cd-demo-certificate, OU=STORK, O=CPEPS, L=EU, ST=EU, C=CD</entry>
-    <entry key="responseToPointSerialNumber.CD">54C8F91A</entry>
-
-	<entry key="responseToPointIssuer.CF">CN=cpeps-cf-demo-certificate, OU=STORK, O=CPEPS, L=EU, ST=ST, C=CF</entry>
-    <entry key="responseToPointSerialNumber.CF">54D787B6</entry>
-
     <!--  If not present then no decryption will be applied on response -->
     <entry key="responseDecryptionIssuer">CN=speps-ca-demo-certificate, OU=STORK, O=SPEPS, L=EU, ST=EU, C=CA</entry>
     <entry key="serialNumber">54C8FC88</entry>

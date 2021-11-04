@@ -19,11 +19,4 @@
 	<entry key="EncryptTo.CA">true</entry>
 
 	<entry key="EncryptTo.CB">true</entry>
-
-	<entry key="EncryptTo.CC">true</entry>
-
-	<entry key="EncryptTo.CD">true</entry>
-
-	<entry key="EncryptTo.CF">true</entry>
-
 </properties>

@@ -13,6 +13,7 @@ services:
       - "127.0.0.1:80:80"
     depends_on:
       - node1
+      - node2
       - keycloak
     command:
       - sh
@@ -22,6 +23,8 @@ services:
         wait-for keycloak:8080 -t 600 -- echo "Keycloak is up"
         echo 'Waiting for CA node'
         wait-for node1:8080 -t 600 -- echo "Node is up"
+        echo 'Waiting for CB node'
+        wait-for node2:8080 -t 600 -- echo "Node is up"
         nginx-debug -g 'daemon off;'
     volumes:
       - "${PWD}/etc/nginx/nginx.conf:/etc/nginx/nginx.conf"
@@ -32,6 +35,7 @@ services:
         aliases:
           - keycloak.test
           - ca.node.test
+          - cb.node.test
   node1:
     build:
       context: .
@@ -48,8 +52,26 @@ services:
       - 8080:8080
       - 8000:8000
     volumes:
-      - ./etc/config/tomcat:/usr/local/tomcat/conf/tomcat
-      - ./etc/config/keystore:/usr/local/tomcat/conf/keystore
+      - ./etc/config-ca/tomcat:/usr/local/tomcat/conf/tomcat
+      - ./etc/config-ca/keystore:/usr/local/tomcat/conf/keystore
+  node2:
+    build:
+      context: .
+      dockerfile: EidasNode.Dockerfile
+    image: digigov-eidas:latest
+    environment:
+      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/"
+      SPECIFIC_CONNECTOR_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificConnector/"
+      SPECIFIC_PROXY_SERVICE_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificProxyService/"
+      SP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/sp/"
+      IDP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/idp/"
+      LOG_HOME: "/usr/local/tomcat/logs"
+    ports:
+      - 8081:8080
+      - 8001:8000
+    volumes:
+      - ./etc/config-cb/tomcat:/usr/local/tomcat/conf/tomcat
+      - ./etc/config-cb/keystore:/usr/local/tomcat/conf/keystore
   keycloak:
     image: quay.io/keycloak/keycloak:15.0.2
     environment:
@@ -67,7 +89,7 @@ services:
       # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
       #JDBC_PARAMS: "ssl=true"
     ports:
-      - 8081:8080
+      - 8085:8080
     depends_on:
       - postgres
     volumes:

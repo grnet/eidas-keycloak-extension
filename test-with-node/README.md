@@ -4,7 +4,7 @@
 Add the following line in `/etc/hosts`
 
 ```
-127.0.0.1 keycloak.test ca.node.test
+127.0.0.1 keycloak.test ca.node.test cb.node.test
 ```
 
 # Realm name
@@ -19,7 +19,9 @@ Keys->rsa-generated->Key size=4096
 Keys->rsa-enc-generated->Key size=4096
 ```
 
-# Idp
+# Idp Settings
+
+```
 Redirect URI: http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint
 Alias: eidasSaml
 Service Provider Entity ID: http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint/descriptor
@@ -43,6 +45,7 @@ Private sector service provider: OFF
 Requested Attributes: [{"Name":"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier", "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}, {"Name":"http://eidas.europa.eu/attributes/naturalperson/CurrentFamilyName", "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}, 
 {"Name":"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName", "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}, 
 {"Name":"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth", "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}]
+```
 
 
 # How to start 

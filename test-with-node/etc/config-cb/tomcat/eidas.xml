@@ -28,11 +28,11 @@
 
     <!-- Connector  -->
     <!-- Connector assertion URL -->
-    <entry key="connector.assertion.url">http://ca.node.test/EidasNode/ColleagueResponse</entry>
+    <entry key="connector.assertion.url">http://cb.node.test/EidasNode/ColleagueResponse</entry>
 
     <!--connector Metadata -->
     <entry key="connector.contact.email">test@com</entry>
-    <entry key="connector.metadata.url">http://ca.node.test/EidasNode/ConnectorMetadata</entry>
+    <entry key="connector.metadata.url">http://cb.node.test/EidasNode/ConnectorMetadata</entry>
 
     <!-- METADATA configuration -->
     <!-- Connector contact -->
@@ -52,15 +52,15 @@
     <entry key="connector.organization.url">https://connector.sample/info</entry>
 
     <!-- Id of this Proxy-Service -->
-	<entry key="service.id">CA</entry>
+    <entry key="service.id">CB</entry>
     <!-- Country Code of this Proxy-Service -->
-	<entry key="service.countrycode">CA</entry>
+	<entry key="service.countrycode">CB</entry>
     <!-- QAALevel of this Service -->
     <entry key="service.maxQAAlevel">4</entry>
 
     <!--service Metadata -->
     <entry key="service.contact.email">test@com</entry>
-    <entry key="service.metadata.url">http://ca.node.test/EidasNode/ServiceMetadata</entry>
+    <entry key="service.metadata.url">http://cb.node.test/EidasNode/ServiceMetadata</entry>
 
     <!-- ProxyService contact -->
     <entry key="service.contact.support.email">contact.support@eidas-proxyservice.eu</entry>
@@ -79,8 +79,8 @@
     <entry key="service.organization.url">https://service.sample/info</entry>
 
     <!-- Eidas Node Service Metadata Single Sign On locations for ServiceMetadata-->
-	<entry key="ssos.serviceMetadataGeneratorIDP.redirect.location">http://ca.node.test/EidasNode/ColleagueRequest</entry>
-	<entry key="ssos.serviceMetadataGeneratorIDP.post.location">http://ca.node.test/EidasNode/ColleagueRequest</entry>
+	<entry key="ssos.serviceMetadataGeneratorIDP.redirect.location">http://cb.node.test/EidasNode/ColleagueRequest</entry>
+	<entry key="ssos.serviceMetadataGeneratorIDP.post.location">http://cb.node.test/EidasNode/ColleagueRequest</entry>
 
     <!-- levels of assurance for the IdP of service -->
     <entry key="service.LoA">
@@ -93,50 +93,24 @@
 	</entry>
 	
     <!-- Number of known Proxy-Service -->
-	<entry key="service.number">6</entry>
+	<entry key="service.number">2</entry>
 
-    <!-- Proxy-Service CA-->
-	<entry key="service1.id">CA</entry>
-	<entry key="service1.name">LOCAL-EIDAS-CA</entry>
+    <!-- Proxy-Service CB-->
+	<entry key="service1.id">CB</entry>
+	<entry key="service1.name">LOCAL-EIDAS-CB</entry>
 	<entry key="service1.skew.notbefore">0</entry>
 	<entry key="service1.skew.notonorafter">0</entry>
-	<entry key="service1.metadata.url">http://ca.node.test/EidasNode/ServiceMetadata</entry>	
-	
-    <!-- Proxy-Service CB-->
-	<entry key="service2.id">CB</entry>
-	<entry key="service2.name">LOCAL-EIDAS-CB</entry>
+	<entry key="service1.metadata.url">http://cb.node.test/EidasNode/ServiceMetadata</entry>	
+
+    <!-- Proxy-Service CA-->
+	<entry key="service2.id">CA</entry>
+	<entry key="service2.name">LOCAL-EIDAS-CA</entry>
 	<entry key="service2.skew.notbefore">0</entry>
 	<entry key="service2.skew.notonorafter">0</entry>
-	<entry key="service2.metadata.url">http://localhost:8081/EidasNode/ServiceMetadata</entry>	
-
-    <!-- Proxy-Service CC-->
-	<entry key="service3.id">CC</entry>
-	<entry key="service3.name">LOCAL-EIDAS-CC</entry>
-	<entry key="service3.skew.notbefore">0</entry>
-	<entry key="service3.skew.notonorafter">0</entry>
-	<entry key="service3.metadata.url">http://localhost:8085/EidasNode/ServiceMetadata</entry>	
-
-    <!-- Proxy-Service CD-->
-	<entry key="service4.id">CD</entry>
-	<entry key="service4.name">LOCAL-EIDAS-CD</entry>
-	<entry key="service4.skew.notbefore">0</entry>
-	<entry key="service4.skew.notonorafter">0</entry>
-	<entry key="service4.metadata.url">http://localhost:7001/EidasNode/ServiceMetadata</entry>	
-
-    <!-- Proxy-Service CE-->
-	<entry key="service5.id">CE</entry>
-	<entry key="service5.name">LOCAL-EIDAS-CE</entry>
-	<entry key="service5.skew.notbefore">0</entry>
-	<entry key="service5.skew.notonorafter">0</entry>
-	<entry key="service5.metadata.url">http://localhost/EidasNode/ServiceMetadata</entry>	
-
-    <!-- Proxy-Service CF-->
-	<entry key="service6.id">CF</entry>
-	<entry key="service6.name">LOCAL-EIDAS-CF</entry>
-	<entry key="service6.skew.notbefore">0</entry>
-	<entry key="service6.skew.notonorafter">0</entry>
-	<entry key="service6.metadata.url">http://localhost:9080/EidasNode/ServiceMetadata</entry>	
+	<entry key="service2.metadata.url">http://ca.node.test/EidasNode/ServiceMetadata</entry>	
 	
+
+
 	<!-- SECURITY POLICY -->
 	<!-- Bypass SP validation -->
 	<entry key="validation.bypass">true</entry>
@@ -156,15 +130,12 @@
 	<entry key="min.qaaLevel.value">1</entry>
 	<!-- max QAA level allowed -->
 	<entry key="max.qaaLevel.value">4</entry>
+
 	<!--  New Configuration -->
 	<!--  SP's ProviderName alias could be none or the PROVIDERNAME  -->
-    <entry key="DEMO-SP.validation">none</entry>
+        <entry key="DEMO-SP.validation">none</entry>
 	<entry key="DEMO-SP-CA.validation">none</entry>
 	<entry key="DEMO-SP-CB.validation">none</entry>
-	<entry key="DEMO-SP-CC.validation">none</entry>
-	<entry key="DEMO-SP-CD.validation">none</entry>
-	<entry key="DEMO-SP-CE.validation">none</entry> 
-	<entry key="DEMO-SP-CF.validation">none</entry> 
 	
 	<!-- PLugin connector -->
     <entry key="active.module.connector">true</entry>
@@ -237,7 +208,7 @@
     <!-- This feature once disabled, switch off the content security policy-->
     <entry key="security.header.CSP.enabled">true</entry>
     <!-- uri used for the CSP reporting feature-->
-    <entry key="security.header.CSP.report.uri">http://ca.node.test/EidasNode</entry>
+    <entry key="security.header.CSP.report.uri">http://cb.node.test/EidasNode</entry>
     <!-- Header specific for mozilla browser backwards compatibility : xhr-src: 'self' -->
     <entry key="security.header.CSP.includeMozillaDirectives">true</entry>
     <!-- X-XSS-Protection:1; mode=block -->
@@ -252,7 +223,7 @@
 	<entry key="metadata.sector">public</entry>
 
 	<!-- value of the NodeCountry to be published in the metadata-->
-	<entry key="metadata.node.country">CA</entry>
+	<entry key="metadata.node.country">CB</entry>
 
 	<entry key="hashDigest.className">org.bouncycastle.crypto.digests.SHA512Digest</entry>
 
@@ -312,9 +283,9 @@
 	<entry key="node.metadata.not.signed.descriptors"></entry>
 	
     <!--URL for specific-proxyService requests receiver only needed when specific  -->
-	<entry key="specific.proxyservice.request.receiver">http://ca.node.test/SpecificProxyService/ProxyServiceRequest</entry>
+	<entry key="specific.proxyservice.request.receiver">http://cb.node.test/SpecificProxyService/ProxyServiceRequest</entry>
 	<!--URL for specific-connector response receiver -->
-	<entry key="specific.connector.response.receiver">http://ca.node.test/SpecificConnector/ConnectorResponse</entry>
+	<entry key="specific.connector.response.receiver">http://cb.node.test/SpecificConnector/ConnectorResponse</entry>
 
 	<!--eidas protocol version value to be published in the node's metadata URLs-->
 	<entry key="eidas.protocol.version">1.2;1.1</entry>

@@ -59,15 +59,6 @@
     <entry key="responseToPointIssuer.CB">CN=speps-cb-demo-certificate, OU=STORK, O=SPEPS, L=EU, ST=EU, C=CB</entry>
     <entry key="responseToPointSerialNumber.CB">54C8FCC5</entry>
 
-    <entry key="responseToPointIssuer.CC">CN=speps-cc-demo-certificate, OU=STORK, O=SPEPS, L=EU, ST=EU, C=CC</entry>
-    <entry key="responseToPointSerialNumber.CC">54C8FCF8</entry>
-
-    <entry key="responseToPointIssuer.CD">CN=speps-cd-demo-certificate, OU=STORK, O=SPEPS, L=EU, ST=EU, C=CD</entry>
-    <entry key="responseToPointSerialNumber.CD">54C8FD2D</entry>
-
-    <entry key="responseToPointIssuer.CF">CN=speps-cf-demo-certificate, OU=STORK, O=SPEPS, L=EU, ST=EU, C=CF</entry>
-    <entry key="responseToPointSerialNumber.CF">54D7898C</entry>
-
     <!--  If not present then no decryption will be applied on response -->
     <entry key="responseDecryptionIssuer">CN=cpeps-ca-demo-certificate, OU=STORK, O=CPEPS, L=EU, ST=EU, C=CA</entry>
     <entry key="serialNumber">54C8F87D</entry>
