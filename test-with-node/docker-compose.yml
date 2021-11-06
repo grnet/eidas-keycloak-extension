@@ -40,7 +40,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.greek
-    image: digigov-eidas:latest
+    image: digigov-eidas-greek:latest
     environment:
       EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat"
       SPECIFIC_CONNECTOR_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificConnector/"
@@ -59,7 +59,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.baseline
-    image: digigov-eidas:latest
+    image: digigov-eidas-baseline:latest
     environment:
       EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat"
       SPECIFIC_CONNECTOR_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificConnector/"
