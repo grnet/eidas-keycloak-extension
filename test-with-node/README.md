@@ -19,6 +19,14 @@ Keys->rsa-generated->Key size=4096
 Keys->rsa-enc-generated->Key size=4096
 ```
 
+# CA node setup 
+
+Open `etc/config-ca/tomcat/specificConnector/metadata/MetadataFetcher_Provider.properties` and add 
+`http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint/descriptor` to the whitelist. 
+
+Find the `rsa-generated` certificate from keycloak and add it as a `.pem` file inside `etc/config-ca/tomcat/specificConnector/metadata-certs/`.
+For example use file `keycloak_test_realm_metadata.pem`. 
+
 # Idp Settings
 
 ```
@@ -50,5 +58,11 @@ Requested Attributes: [{"Name":"http://eidas.europa.eu/attributes/naturalperson/
 
 # How to start 
 
-./build_and_deploy.sh
+```
+pushd ..
+mvn clean package
+cp target/keycloak-eidas-idp-*.jar test-with-node/etc/keycloak/deployments/
+popd
+docker-compose up
+```
 
