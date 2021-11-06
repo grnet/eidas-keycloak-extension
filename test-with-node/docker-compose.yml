@@ -38,8 +38,8 @@ services:
           - cb.node.test
   node1:
     build:
-      context: vendors/eidas-node
-      dockerfile: ../../Dockerfile.greek
+      context: .
+      dockerfile: Dockerfile.greek
     image: digigov-eidas:latest
     environment:
       EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat"
@@ -48,6 +48,7 @@ services:
       SP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/sp/"
       IDP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/idp/"
       LOG_HOME: "/usr/local/tomcat/logs"
+      JAVA_OPTS: "-Dblock.security.provider.reinstall"
     ports:
       - 8080:8080
       - 8000:8000
@@ -66,6 +67,7 @@ services:
       SP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/sp/"
       IDP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/idp/"
       LOG_HOME: "/usr/local/tomcat/logs"
+      JAVA_OPTS: "-Dblock.security.provider.reinstall"
     ports:
       - 8081:8080
       - 8001:8000
