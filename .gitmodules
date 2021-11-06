@@ -1,0 +1,3 @@
+[submodule "test-with-node/vendors/eidas-node"]
+	path = test-with-node/vendors/eidas-node
+	url = https://gitlab.grnet.gr/eidas/eidas-node

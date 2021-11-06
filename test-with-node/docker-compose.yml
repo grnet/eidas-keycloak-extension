@@ -38,11 +38,11 @@ services:
           - cb.node.test
   node1:
     build:
-      context: .
-      dockerfile: EidasNode.Dockerfile
+      context: vendors/eidas-node
+      dockerfile: ../../Dockerfile.greek
     image: digigov-eidas:latest
     environment:
-      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/"
+      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat"
       SPECIFIC_CONNECTOR_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificConnector/"
       SPECIFIC_PROXY_SERVICE_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificProxyService/"
       SP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/sp/"
@@ -57,10 +57,10 @@ services:
   node2:
     build:
       context: .
-      dockerfile: EidasNode.Dockerfile
+      dockerfile: Dockerfile.baseline
     image: digigov-eidas:latest
     environment:
-      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/"
+      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat"
       SPECIFIC_CONNECTOR_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificConnector/"
       SPECIFIC_PROXY_SERVICE_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificProxyService/"
       SP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/sp/"
