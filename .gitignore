@@ -4,3 +4,4 @@
 /target/
 test/deployments/*
 .vscode/*
+test-with-node/etc/keycloak/deployments/*
