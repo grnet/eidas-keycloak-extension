@@ -3,7 +3,7 @@ RUN mkdir /app
 COPY vendors/eidas-node /app/
 RUN ls /app/
 RUN cd /app/EIDAS-Parent \ 
- && mvn clean package -P NodeOnly,DemoToolsOnly,nodeJcacheDev,specificCommunicationJcacheDev,specificConnectorWarPackaging,specificProxyServiceWarPackaging -DskipTests
+ && mvn clean package -P NodeOnly,DemoToolsOnly,nodeJcacheIgnite,specificCommunicationJcacheIgnite,specificConnectorWarPackaging,specificProxyServiceWarPackaging -DskipTests
 
 
 FROM tomcat:8.5-jdk8
