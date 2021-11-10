@@ -3,8 +3,7 @@ RUN mkdir /app
 COPY vendors/eidas-node /app/
 RUN ls /app/
 RUN cd /app/EIDAS-Parent \ 
- && mvn clean package -P NodeOnly,DemoToolsOnly,nodeJcacheIgnite,specificCommunicationJcacheIgnite,specificConnectorWarPackaging,specificProxyServiceWarPackaging -DskipTests
-
+ && mvn clean package -P NodeOnly,DemoToolsOnly,nodeJcacheIgnite,specificCommunicationJcacheIgnite -DskipTests
 
 FROM tomcat:8.5-jdk8
 COPY --from=builder /app/EIDAS-SpecificConnector/target/SpecificConnector.war /usr/local/tomcat/webapps/

@@ -42,7 +42,7 @@ services:
       dockerfile: Dockerfile.greek
     image: digigov-eidas-greek:latest
     environment:
-      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat"
+      EIDAS_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/"
       SPECIFIC_CONNECTOR_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificConnector/"
       SPECIFIC_PROXY_SERVICE_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/specificProxyService/"
       SP_CONFIG_REPOSITORY: "/usr/local/tomcat/conf/tomcat/sp/"

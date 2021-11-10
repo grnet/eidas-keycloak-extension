@@ -80,7 +80,13 @@
                     <property name="atomicityMode" value="ATOMIC"/>
                     <property name="backups" value="1"/>
                     <property name="expiryPolicyFactory" ref="7_minutes_duration"/>
-                </bean>
+	    </bean>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="name" value="specificConnectorRequestCorrelationCacheService"/>
+                    <property name="atomicityMode" value="ATOMIC"/>
+                    <property name="backups" value="1"/>
+                    <property name="expiryPolicyFactory" ref="7_minutes_duration"/>
+	    </bean>
                 <bean class="org.apache.ignite.configuration.CacheConfiguration">
                     <property name="name" value="connectorFlowIdCacheService"/>
                     <property name="atomicityMode" value="ATOMIC"/>
