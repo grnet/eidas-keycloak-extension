@@ -25,7 +25,8 @@ Open `etc/config-ca/tomcat/specificConnector/metadata/MetadataFetcher_Provider.p
 `http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint/descriptor` to the whitelist. 
 
 Find the `rsa-generated` certificate from keycloak and add it as a `.pem` file inside `etc/config-ca/tomcat/specificConnector/metadata-certs/`.
-For example use file `keycloak_test_realm_metadata.pem`. 
+For example use file `keycloak_test_realm_metadata.pem`. You can use something like `https://www.samltool.com/format_x509cert.php` to convert 
+the string to the appropriate pem format.
 
 # Idp Settings
 
