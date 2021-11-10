@@ -43,6 +43,10 @@ Want Assertions Encrypted: ON
 Signature Algorithm: RSA_SHA512_MGF1
 SAML Signature Key NAme: KEY_ID
 Force Authentication: ON
+
+Validate Signature: ON 
+Validating X509 Cerificates:  Obtain from `http://ca.node.test/SpecificConnector/ConnectorResponderMetadata`
+
 Sign Service Provider Metadata: ON
 
 Requested AuthnContext Constraints
@@ -55,6 +59,7 @@ Requested Attributes: [{"Name":"http://eidas.europa.eu/attributes/naturalperson/
 {"Name":"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName", "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}, 
 {"Name":"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth", "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}]
 ```
+
 
 
 # How to start 
