@@ -26,7 +26,7 @@
 	<!-- the IdP's metadata url -->
 	<entry key="idp.metadata.url">http://ca.node.test/SpecificProxyService/IdpResponse</entry>
 	<entry key="idp.name">demo IdP</entry>
-	<entry key="idp.protocol">SIMPLE,SAML</entry>
+	<entry key="idp.protocol">SIMPLE</entry>
 
 	<!--thespecific service URL for receiving IdP simple protocol response -->
         <entry key="specific.proxyservice.idp.response.service.url">http://ca.node.test/SpecificProxyService/IdpResponse</entry>
