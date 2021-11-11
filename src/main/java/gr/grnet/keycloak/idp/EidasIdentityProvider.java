@@ -91,7 +91,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 			if (getConfig().getConfig().get(SAMLIdentityProviderConfig.ALLOW_CREATE) == null
 					|| getConfig().isAllowCreate())
 				allowCreate = Boolean.TRUE;
-			SAML2AuthnRequestBuilder authnRequestBuilder = new EidasSAML2AuthnRequestBuilder()
+			SAML2AuthnRequestBuilder authnRequestBuilder = new SAML2AuthnRequestBuilder()
 					.assertionConsumerUrl(assertionConsumerServiceUrl).destination(destinationUrl).issuer(issuerURL)
 					.forceAuthn(getConfig().isForceAuthn()).protocolBinding(protocolBinding)
 					.nameIdPolicy(SAML2NameIDPolicyBuilder.format(nameIDPolicyFormat).setAllowCreate(allowCreate))
