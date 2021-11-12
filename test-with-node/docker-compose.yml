@@ -97,6 +97,7 @@ services:
     volumes:
       - ./etc/keycloak/deployments:/opt/jboss/keycloak/standalone/deployments/
       - ./etc/keycloak/disable-theme-cache.cli:/opt/jboss/startup-scripts/disable-theme-cache.cli 
+      - ./etc/keycloak/certs/keycloak.jks:/opt/keycloak.jks
   postgres:
     image: postgres
     volumes:
