@@ -119,9 +119,9 @@ public class EidasSAMLEndpoint {
     public static final String SAML_AUTHN_STATEMENT = "SAML_AUTHN_STATEMENT";
     protected RealmModel realm;
     protected EventBuilder event;
-    protected EidasIdentityProviderConfig config;
+    protected EidasSAMLIdentityProviderConfig config;
     protected IdentityProvider.AuthenticationCallback callback;
-    protected EidasIdentityProvider provider;
+    protected EidasSAMLIdentityProvider provider;
     private final DestinationValidator destinationValidator;
 
     @Context
@@ -134,7 +134,7 @@ public class EidasSAMLEndpoint {
     private HttpHeaders headers;
 
 
-    public EidasSAMLEndpoint(RealmModel realm, EidasIdentityProvider provider, EidasIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
+    public EidasSAMLEndpoint(RealmModel realm, EidasSAMLIdentityProvider provider, EidasSAMLIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
         this.realm = realm;
         this.config = config;
         this.callback = callback;

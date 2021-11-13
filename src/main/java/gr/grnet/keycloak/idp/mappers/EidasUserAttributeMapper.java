@@ -35,11 +35,11 @@ import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.saml.common.util.StringUtil;
 
-import gr.grnet.keycloak.idp.EidasIdentityProviderFactory;
+import gr.grnet.keycloak.idp.EidasSAMLIdentityProviderFactory;
 
 public class EidasUserAttributeMapper extends AbstractIdentityProviderMapper implements SamlMetadataDescriptorUpdater {
 
-	public static final String[] COMPATIBLE_PROVIDERS = { EidasIdentityProviderFactory.PROVIDER_ID };
+	public static final String[] COMPATIBLE_PROVIDERS = { EidasSAMLIdentityProviderFactory.PROVIDER_ID };
 
 	private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
 

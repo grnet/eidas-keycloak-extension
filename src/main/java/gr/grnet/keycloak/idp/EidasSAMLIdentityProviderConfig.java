@@ -3,7 +3,7 @@ package gr.grnet.keycloak.idp;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.models.IdentityProviderModel;
 
-public class EidasIdentityProviderConfig extends SAMLIdentityProviderConfig {
+public class EidasSAMLIdentityProviderConfig extends SAMLIdentityProviderConfig {
 
 	private static final long serialVersionUID = 3296255033084690635L;
 	
@@ -11,10 +11,10 @@ public class EidasIdentityProviderConfig extends SAMLIdentityProviderConfig {
 	public static final String PRIVATE_SERVICE_PROVIDER = "privateServiceProvider";
 	public static final String REQUESTED_ATTRIBUTES = "requestedAttributes";
 
-	public EidasIdentityProviderConfig() {
+	public EidasSAMLIdentityProviderConfig() {
 	}
 
-	public EidasIdentityProviderConfig(IdentityProviderModel identityProviderModel) {
+	public EidasSAMLIdentityProviderConfig(IdentityProviderModel identityProviderModel) {
 		super(identityProviderModel);
 	}
 

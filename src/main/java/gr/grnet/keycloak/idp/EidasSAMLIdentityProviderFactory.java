@@ -6,7 +6,7 @@ import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.saml.validators.DestinationValidator;
 
-public class EidasIdentityProviderFactory extends SAMLIdentityProviderFactory {
+public class EidasSAMLIdentityProviderFactory extends SAMLIdentityProviderFactory {
 
 	public static final String PROVIDER_ID = "eidasSaml";
 
@@ -23,13 +23,13 @@ public class EidasIdentityProviderFactory extends SAMLIdentityProviderFactory {
 	}
 
 	@Override
-	public EidasIdentityProviderConfig createConfig() {
-		return new EidasIdentityProviderConfig();
+	public EidasSAMLIdentityProviderConfig createConfig() {
+		return new EidasSAMLIdentityProviderConfig();
 	}
 
 	@Override
-	public EidasIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
-		return new EidasIdentityProvider(session, new EidasIdentityProviderConfig(model), destinationValidator);
+	public EidasSAMLIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
+		return new EidasSAMLIdentityProvider(session, new EidasSAMLIdentityProviderConfig(model), destinationValidator);
 	}
 
 	@Override

@@ -45,12 +45,12 @@ import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.JsonSerialization;
 
-public class EidasIdentityProvider extends SAMLIdentityProvider {
+public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
-	private final EidasIdentityProviderConfig config;
+	private final EidasSAMLIdentityProviderConfig config;
 	private final DestinationValidator destinationValidator;
 
-	public EidasIdentityProvider(KeycloakSession session, EidasIdentityProviderConfig config,
+	public EidasSAMLIdentityProvider(KeycloakSession session, EidasSAMLIdentityProviderConfig config,
 			DestinationValidator destinationValidator) {
 		super(session, config, destinationValidator);
 		this.config = config;
@@ -58,7 +58,7 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 	}
 
 	@Override
-	public EidasIdentityProviderConfig getConfig() {
+	public EidasSAMLIdentityProviderConfig getConfig() {
 		return this.config;
 	}
 	
