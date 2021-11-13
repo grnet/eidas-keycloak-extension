@@ -1,6 +1,8 @@
 package gr.grnet.keycloak.idp.parsers;
 
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import javax.xml.namespace.QName;
@@ -33,6 +35,8 @@ public class EidasSAMLAttributeValueParser implements StaxParser {
     private static final QName NIL = new QName(JBossSAMLURIConstants.XSI_NSURI.get(), "nil", JBossSAMLURIConstants.XSI_PREFIX.get());
     private static final QName XSI_TYPE = new QName(JBossSAMLURIConstants.XSI_NSURI.get(), "type", JBossSAMLURIConstants.XSI_PREFIX.get());
 
+    private static final List<String> EIDAS_TYPES = Arrays.asList(":PersonIdentifierType", ":CurrentFamilyNameType", ":CurrentGivenNameType", ":DateOfBirthType");
+    
     public static EidasSAMLAttributeValueParser getInstance() {
         return INSTANCE;
     }
@@ -90,12 +94,17 @@ public class EidasSAMLAttributeValueParser implements StaxParser {
             return XMLTimeUtil.parse(StaxParserUtil.getElementText(xmlEventReader));
         } else if(typeValue.contains(":boolean")){
             return StaxParserUtil.getElementText(xmlEventReader);
-        } else if(typeValue.contains(":PersonIdentifierType")) { 
-        	return StaxParserUtil.getElementText(xmlEventReader);
+        } else {
+        	// FIXME: check type of each additional type
+        	for(String eidasType: EIDAS_TYPES) { 
+        		if (typeValue.contains(eidasType)) { 
+        			return StaxParserUtil.getElementText(xmlEventReader);
+        		}
+        	}
         }
         
         // KEYCLOAK-18417: Simply ignore unknown types
-        logger.info("Skipping attribute value of unsupported type " + typeValue);
+        logger.debug("Skipping attribute value of unsupported type " + typeValue);
         StaxParserUtil.bypassElementBlock(xmlEventReader);
         return null;
     }

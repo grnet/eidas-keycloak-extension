@@ -21,7 +21,6 @@ import org.keycloak.broker.saml.mappers.UserAttributeMapper;
 import org.keycloak.common.util.CollectionUtil;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
-import org.keycloak.dom.saml.v2.assertion.AttributeStatementType.ASTChoiceType;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
@@ -161,31 +160,6 @@ public class EidasUserAttributeMapper extends AbstractIdentityProviderMapper imp
 
     private List<String> findAttributeValuesInContext(String attributeName, BrokeredIdentityContext context) {
         AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
-        List<ASTChoiceType> attrs = assertion.getAttributeStatements().stream()
-        .flatMap(statement -> statement.getAttributes().stream()).collect(Collectors.toList());
-        //.flatMap(attributeType -> attributeType.getAttribute().getAttributeValue().stream())
-        //.filter(Objects::nonNull)
-        //.map(Object::toString)
-        //.collect(Collectors.toList());
-        
-        for(ASTChoiceType at: attrs) {
-        	logger.info("-------------------------");
-        	AttributeType a = at.getAttribute();
-        	logger.info("Found attribute " + a);
-        	logger.info("Friendly friendlyname=" + a.getFriendlyName());
-        	logger.info("Friendly name=" + a.getName());
-        	logger.info("Friendly nameformat=" + a.getNameFormat());
-        	List<Object> av = a.getAttributeValue();
-        	if (av != null) {
-                logger.info("All values=" + av);
-        		for(Object o: av) {
-        			if (o != null) { 
-        				logger.info("Found value=" + o);
-        			}
-        		}
-        	}
-        }
-        
 
         return assertion.getAttributeStatements().stream()
                 .flatMap(statement -> statement.getAttributes().stream())
