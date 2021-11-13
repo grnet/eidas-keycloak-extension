@@ -32,8 +32,6 @@ public class EidasIdentityProviderFactory extends SAMLIdentityProviderFactory {
 		return new EidasIdentityProvider(session, new EidasIdentityProviderConfig(model), destinationValidator);
 	}
 
-	// FIXME: override parseConfig
-	
 	@Override
 	public void init(Scope config) {
 		super.init(config);

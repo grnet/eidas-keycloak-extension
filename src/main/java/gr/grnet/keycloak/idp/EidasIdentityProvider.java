@@ -1,10 +1,10 @@
 package gr.grnet.keycloak.idp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -12,10 +12,19 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.keycloak.broker.provider.AuthenticationRequest;
+import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
+import org.keycloak.broker.provider.IdentityProviderDataMarshaller;
+import org.keycloak.broker.saml.SAMLEndpoint;
 import org.keycloak.broker.saml.SAMLIdentityProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.dom.saml.v2.assertion.AssertionType;
+import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
+import org.keycloak.dom.saml.v2.assertion.NameIDType;
+import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
+import org.keycloak.dom.saml.v2.protocol.ResponseType;
+import org.keycloak.events.EventBuilder;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -33,22 +42,31 @@ import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
+import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.JsonSerialization;
 
 public class EidasIdentityProvider extends SAMLIdentityProvider {
 
 	private final EidasIdentityProviderConfig config;
+	private final DestinationValidator destinationValidator;
 
 	public EidasIdentityProvider(KeycloakSession session, EidasIdentityProviderConfig config,
 			DestinationValidator destinationValidator) {
 		super(session, config, destinationValidator);
 		this.config = config;
+		this.destinationValidator = destinationValidator;
 	}
 
 	@Override
 	public EidasIdentityProviderConfig getConfig() {
 		return this.config;
 	}
+	
+    @Override
+    public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
+    	logger.info("Creating EidasSAMLEndpoint");
+        return new EidasSAMLEndpoint(realm, this, getConfig(), callback, destinationValidator);
+    }
 
 	@Override
 	public Response performLogin(AuthenticationRequest request) {
@@ -190,6 +208,31 @@ public class EidasIdentityProvider extends SAMLIdentityProvider {
 			return configEntityId;
 	}
 
+	@Override
+    public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context)  {
+		logger.info("Authentication finished");
+        ResponseType responseType = (ResponseType)context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
+        AssertionType assertion = (AssertionType)context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
+        logger.info("Assertion=" + assertion);
+        SubjectType subject = assertion.getSubject();
+        SubjectType.STSubType subType = subject.getSubType();
+        if (subType != null) {
+            NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+            authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID, subjectNameID.serializeAsString());
+        }
+        AuthnStatementType authn =  (AuthnStatementType)context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
+        if (authn != null && authn.getSessionIndex() != null) {
+            authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
+
+        }
+    }
+
+	@Override
+    public IdentityProviderDataMarshaller getMarshaller() {
+		logger.info("Creating EidasSAMLDataMarshaller");
+        return new EidasSAMLDataMarshaller();
+    }
+	
 	private class EidasExtensionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
 
 		public static final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions";

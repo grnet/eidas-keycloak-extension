@@ -85,6 +85,8 @@ services:
       DB_PASSWORD: password
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
+      DEBUG: "true"
+      DEBUG_PORT: "*:8000"
       PROXY_ADDRESS_FORWARDING: "true"
       # REDIRECT_SOCKET: "proxy-https"
       KEYCLOAK_FRONTEND_URL: http://keycloak.test/auth
@@ -92,6 +94,7 @@ services:
       #JDBC_PARAMS: "ssl=true"
     ports:
       - 8085:8080
+      - 8002:8000
     depends_on:
       - postgres
     volumes:
