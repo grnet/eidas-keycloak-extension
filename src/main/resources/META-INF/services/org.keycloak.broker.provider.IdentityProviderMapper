@@ -1,1 +1,2 @@
 gr.grnet.keycloak.idp.mappers.EidasUserAttributeMapper
+gr.grnet.keycloak.idp.mappers.EidasUserTemplateMapper
