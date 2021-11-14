@@ -69,6 +69,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+
 public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	private final EidasSAMLIdentityProviderConfig config;
@@ -186,6 +187,164 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 		}
 	}
 
+	@Override
+	public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
+		logger.info("Authentication finished");
+		ResponseType responseType = (ResponseType) context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
+		AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
+		logger.info("Assertion=" + assertion);
+		SubjectType subject = assertion.getSubject();
+		SubjectType.STSubType subType = subject.getSubType();
+		if (subType != null) {
+			NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID,
+					subjectNameID.serializeAsString());
+		}
+		AuthnStatementType authn = (AuthnStatementType) context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
+		if (authn != null && authn.getSessionIndex() != null) {
+			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
+		}
+	}
+
+	@Override
+	public IdentityProviderDataMarshaller getMarshaller() {
+		return new EidasSAMLDataMarshaller();
+	}
+
+	@Override
+	public Response export(UriInfo uriInfo, RealmModel realm, String format) {
+		try {
+			URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
+
+			if (getConfig().isPostBindingAuthnRequest()) {
+				authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+			}
+
+			URI endpoint = uriInfo.getBaseUriBuilder().path("realms").path(realm.getName()).path("broker")
+					.path(getConfig().getAlias()).path("endpoint").build();
+
+			boolean wantAuthnRequestsSigned = getConfig().isWantAuthnRequestsSigned();
+			boolean wantAssertionsSigned = getConfig().isWantAssertionsSigned();
+			boolean wantAssertionsEncrypted = getConfig().isWantAssertionsEncrypted();
+			String entityId = getEntityId(uriInfo, realm);
+			String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
+			int attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex() != null
+					? getConfig().getAttributeConsumingServiceIndex()
+					: 1;
+			String attributeConsumingServiceName = getConfig().getAttributeConsumingServiceName();
+
+			List<Element> signingKeys = new LinkedList<>();
+			List<Element> encryptionKeys = new LinkedList<>();
+
+			session.keys().getKeysStream(realm, KeyUse.SIG, Algorithm.RS256).filter(Objects::nonNull)
+					.filter(key -> key.getCertificate() != null).sorted(SamlService::compareKeys).forEach(key -> {
+						try {
+							Element element = SPMetadataDescriptor.buildKeyInfoElement(key.getKid(),
+									PemUtils.encodeCertificate(key.getCertificate()));
+							signingKeys.add(element);
+
+							if (key.getStatus() == KeyStatus.ACTIVE) {
+								encryptionKeys.add(element);
+							}
+						} catch (ParserConfigurationException e) {
+							logger.warn("Failed to export SAML SP Metadata!", e);
+							throw new RuntimeException(e);
+						}
+					});
+
+			// Prepare the metadata descriptor model
+			StringWriter sw = new StringWriter();
+			XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
+			SAMLMetadataWriter metadataWriter = new EidasSAMLMetadataWriter(writer);
+
+			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding,
+					endpoint, endpoint, wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
+					entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
+
+			// Create the AttributeConsumingService
+			AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(
+					attributeConsumingServiceIndex);
+			attributeConsumingService.setIsDefault(true);
+
+			if (attributeConsumingServiceName != null && attributeConsumingServiceName.length() > 0) {
+				String currentLocale = realm.getDefaultLocale() == null ? "en" : realm.getDefaultLocale();
+				LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
+				attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
+				attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
+			}
+
+			// If node country is defined, look for the SP description and add it
+			String nodeCountry = getConfig().getServiceProviderCountryOfOrigin();
+			if (!StringUtil.isNullOrEmpty(nodeCountry)) {
+				for (EntityDescriptorType.EDTChoiceType choiceType : entityDescriptor.getChoiceType()) {
+					List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
+
+					if (descriptors != null) {
+						for (EntityDescriptorType.EDTDescriptorChoiceType descriptor : descriptors) {
+							SPSSODescriptorType spDescriptor = descriptor.getSpDescriptor();
+							if (spDescriptor != null) {
+								updateExtensionsType(spDescriptor, nodeCountry);
+							}
+						}
+					}
+				}
+			}
+
+			// Look for the SP descriptor and add the attribute consuming service
+			for (EntityDescriptorType.EDTChoiceType choiceType : entityDescriptor.getChoiceType()) {
+				List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
+
+				if (descriptors != null) {
+					for (EntityDescriptorType.EDTDescriptorChoiceType descriptor : descriptors) {
+						if (descriptor.getSpDescriptor() != null) {
+							descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
+						}
+					}
+				}
+			}
+
+			// Add the attribute mappers
+			realm.getIdentityProviderMappersByAliasStream(getConfig().getAlias()).forEach(mapper -> {
+				IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory()
+						.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+				if (target instanceof SamlMetadataDescriptorUpdater) {
+					SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater) target;
+					metadataAttrProvider.updateMetadata(mapper, entityDescriptor);
+				}
+			});
+
+			// Write the metadata and export it to a string
+			metadataWriter.writeEntityDescriptor(entityDescriptor);
+
+			String descriptor = sw.toString();
+
+			// Metadata signing
+			if (getConfig().isSignSpMetadata()) {
+				KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
+				String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(),
+						activeKey.getCertificate());
+				KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
+
+				Document metadataDocument = DocumentUtil.getDocument(descriptor);
+				SAML2Signature signatureHelper = new SAML2Signature();
+				signatureHelper.setSignatureMethod(getSignatureAlgorithm().getXmlSignatureMethod());
+				signatureHelper.setDigestMethod(getSignatureAlgorithm().getXmlSignatureDigestMethod());
+
+				Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
+				signatureHelper.setNextSibling(nextSibling);
+
+				signatureHelper.signSAMLDocument(metadataDocument, keyName, keyPair, CanonicalizationMethod.EXCLUSIVE);
+
+				descriptor = DocumentUtil.getDocumentAsString(metadataDocument);
+			}
+
+			return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
+		} catch (Exception e) {
+			logger.warn("Failed to export SAML SP Metadata!", e);
+			throw new RuntimeException(e);
+		}
+	}
+
 	private List<String> getAuthnContextClassRefUris() {
 		String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
 		if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
@@ -221,173 +380,18 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			return configEntityId;
 	}
 
-	@Override
-	public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
-		logger.info("Authentication finished");
-		ResponseType responseType = (ResponseType) context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
-		AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
-		logger.info("Assertion=" + assertion);
-		SubjectType subject = assertion.getSubject();
-		SubjectType.STSubType subType = subject.getSubType();
-		if (subType != null) {
-			NameIDType subjectNameID = (NameIDType) subType.getBaseID();
-			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID,
-					subjectNameID.serializeAsString());
+	private void updateExtensionsType(SPSSODescriptorType spDescriptor, String nodeCountry) {
+		ExtensionsType extensions = spDescriptor.getExtensions();
+		if (extensions == null) {
+			extensions = new ExtensionsType();
+			spDescriptor.setExtensions(extensions);
+		} else {
+			logger.info("Found extensions type already non-null");
 		}
-		AuthnStatementType authn = (AuthnStatementType) context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
-		if (authn != null && authn.getSessionIndex() != null) {
-			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
-		}
+
+		extensions.addExtension(new EidasNodeCountryExtensionGenerator(nodeCountry));
+
+		logger.info("TODO: add <eidas:NodeCountry>EU</eidas:NodeCountry>");
 	}
-
-	@Override
-	public IdentityProviderDataMarshaller getMarshaller() {
-		return new EidasSAMLDataMarshaller();
-	}
-	
-    @Override
-    public Response export(UriInfo uriInfo, RealmModel realm, String format) {
-        try
-        {
-            URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
-
-            if (getConfig().isPostBindingAuthnRequest()) {
-                authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
-            }
-
-            URI endpoint = uriInfo.getBaseUriBuilder()
-                    .path("realms").path(realm.getName())
-                    .path("broker")
-                    .path(getConfig().getAlias())
-                    .path("endpoint")
-                    .build();
-
-            boolean wantAuthnRequestsSigned = getConfig().isWantAuthnRequestsSigned();
-            boolean wantAssertionsSigned = getConfig().isWantAssertionsSigned();
-            boolean wantAssertionsEncrypted = getConfig().isWantAssertionsEncrypted();
-            String entityId = getEntityId(uriInfo, realm);
-            String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
-            int attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex() != null ? getConfig().getAttributeConsumingServiceIndex(): 1;
-            String attributeConsumingServiceName = getConfig().getAttributeConsumingServiceName();
-
-            List<Element> signingKeys = new LinkedList<>();
-            List<Element> encryptionKeys = new LinkedList<>();
-
-            session.keys().getKeysStream(realm, KeyUse.SIG, Algorithm.RS256)
-                    .filter(Objects::nonNull)
-                    .filter(key -> key.getCertificate() != null)
-                    .sorted(SamlService::compareKeys)
-                    .forEach(key -> {
-                        try {
-                            Element element = SPMetadataDescriptor
-                                    .buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate()));
-                            signingKeys.add(element);
-
-                            if (key.getStatus() == KeyStatus.ACTIVE) {
-                                encryptionKeys.add(element);
-                            }
-                        } catch (ParserConfigurationException e) {
-                            logger.warn("Failed to export SAML SP Metadata!", e);
-                            throw new RuntimeException(e);
-                        }
-                    });
-
-            // Prepare the metadata descriptor model
-            StringWriter sw = new StringWriter();
-            XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
-            SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
-
-            EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(
-                authnBinding, authnBinding, endpoint, endpoint,
-                wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
-                entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
-
-            // Create the AttributeConsumingService
-            AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(attributeConsumingServiceIndex);
-            attributeConsumingService.setIsDefault(true);
-
-            if (attributeConsumingServiceName != null && attributeConsumingServiceName.length() > 0)
-            {
-                String currentLocale = realm.getDefaultLocale() == null ? "en": realm.getDefaultLocale();
-                LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
-                attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
-                attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
-            }
-            
-            // Look for the SP description and add the Node Country
-            // FIXME
-            String nodeCountry = getConfig().getServiceProviderCountryOfOrigin();
-            if (!StringUtil.isNullOrEmpty(nodeCountry)) { 
-            	for (EntityDescriptorType.EDTChoiceType choiceType: entityDescriptor.getChoiceType()) {
-                    List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
-
-                    if (descriptors != null) {
-                        for (EntityDescriptorType.EDTDescriptorChoiceType descriptor: descriptors) {
-                        	SPSSODescriptorType spDescriptor = descriptor.getSpDescriptor();
-                        	if (spDescriptor != null) {
-                        		ExtensionsType extensions = spDescriptor.getExtensions();
-                        		// FIXME
-                        		logger.info("TODO: add something like <md:Extensions><eidas:NodeCountry>EU</eidas:NodeCountry></md:Extensions");
-                            }
-                        }
-                    }
-            	}
-            }
-
-            // Look for the SP descriptor and add the attribute consuming service
-            for (EntityDescriptorType.EDTChoiceType choiceType: entityDescriptor.getChoiceType()) {
-                List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
-
-                if (descriptors != null) {
-                    for (EntityDescriptorType.EDTDescriptorChoiceType descriptor: descriptors) {
-                        if (descriptor.getSpDescriptor() != null) {
-                            descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
-                        }
-                    }
-                }
-            }
-            
-            // Add the attribute mappers
-            realm.getIdentityProviderMappersByAliasStream(getConfig().getAlias())
-                .forEach(mapper -> {
-                    IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-                    if (target instanceof SamlMetadataDescriptorUpdater)
-                    {
-                        SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater)target;
-                        metadataAttrProvider.updateMetadata(mapper, entityDescriptor);
-                    }
-                });
-    
-            // Write the metadata and export it to a string
-            metadataWriter.writeEntityDescriptor(entityDescriptor);
-
-            String descriptor = sw.toString();
-
-            // Metadata signing
-            if (getConfig().isSignSpMetadata())
-            {
-                KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
-                String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
-                KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
-
-                Document metadataDocument = DocumentUtil.getDocument(descriptor);
-                SAML2Signature signatureHelper = new SAML2Signature();
-                signatureHelper.setSignatureMethod(getSignatureAlgorithm().getXmlSignatureMethod());
-                signatureHelper.setDigestMethod(getSignatureAlgorithm().getXmlSignatureDigestMethod());
-
-                Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
-                signatureHelper.setNextSibling(nextSibling);
-
-                signatureHelper.signSAMLDocument(metadataDocument, keyName, keyPair, CanonicalizationMethod.EXCLUSIVE);
-
-                descriptor = DocumentUtil.getDocumentAsString(metadataDocument);
-            }
-
-            return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
-        } catch (Exception e) {
-            logger.warn("Failed to export SAML SP Metadata!", e);
-            throw new RuntimeException(e);
-        }
-    }
 
 }

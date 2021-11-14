@@ -39,11 +39,6 @@
 			<artifactId>keycloak-server-spi</artifactId>
 			<version>${keycloakVersion}</version>
 		</dependency>
-		<dependency>
-			<groupId>se.litsec.eidas</groupId>
-			<artifactId>eidas-opensaml4</artifactId>
-			<version>${eidas-opensaml.version}</version>
-		</dependency>
 	</dependencies>
 
 	<build>
