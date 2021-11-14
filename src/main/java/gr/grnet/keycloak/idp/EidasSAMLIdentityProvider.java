@@ -1,6 +1,5 @@
 package gr.grnet.keycloak.idp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,7 +8,6 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
@@ -36,10 +34,7 @@ import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
 import org.keycloak.saml.SAML2AuthnRequestBuilder;
 import org.keycloak.saml.SAML2NameIDPolicyBuilder;
 import org.keycloak.saml.SAML2RequestedAuthnContextBuilder;
-import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
-import org.keycloak.saml.common.exceptions.ProcessingException;
-import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.sessions.AuthenticationSessionModel;
@@ -61,12 +56,12 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 	public EidasSAMLIdentityProviderConfig getConfig() {
 		return this.config;
 	}
-	
-    @Override
-    public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-    	logger.info("Creating EidasSAMLEndpoint");
-        return new EidasSAMLEndpoint(realm, this, getConfig(), callback, destinationValidator);
-    }
+
+	@Override
+	public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
+		logger.info("Creating EidasSAMLEndpoint");
+		return new EidasSAMLEndpoint(realm, this, getConfig(), callback, destinationValidator);
+	}
 
 	@Override
 	public Response performLogin(AuthenticationRequest request) {
@@ -116,7 +111,8 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 					.attributeConsumingServiceIndex(attributeConsumingServiceIndex)
 					.requestedAuthnContext(requestedAuthnContext).subject(loginHint);
 
-			authnRequestBuilder.addExtension(new EidasExtensionGenerator());
+			// eIDAS specific action, add the extensions
+			authnRequestBuilder.addExtension(new EidasExtensionGenerator(getConfig()));
 
 			JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
 					.relayState(request.getState().getEncoded());
@@ -161,18 +157,6 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 		}
 	}
 
-	private List<RequestedAttribute> getRequestedAttributes() {
-		String requestedAttributes = getConfig().getRequestedAttributes();
-		if (requestedAttributes == null || requestedAttributes.isEmpty())
-			return new ArrayList<>();
-		try {
-			return Arrays.asList(JsonSerialization.readValue(requestedAttributes, RequestedAttribute[].class));
-		} catch (Exception e) {
-			logger.warn("Could not json-deserialize RequestedAttribute config entry: " + requestedAttributes, e);
-			return new ArrayList<>();
-		}
-	}
-
 	private List<String> getAuthnContextClassRefUris() {
 		String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
 		if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
@@ -209,63 +193,27 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 	}
 
 	@Override
-    public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context)  {
+	public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
 		logger.info("Authentication finished");
-        ResponseType responseType = (ResponseType)context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
-        AssertionType assertion = (AssertionType)context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
-        logger.info("Assertion=" + assertion);
-        SubjectType subject = assertion.getSubject();
-        SubjectType.STSubType subType = subject.getSubType();
-        if (subType != null) {
-            NameIDType subjectNameID = (NameIDType) subType.getBaseID();
-            authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID, subjectNameID.serializeAsString());
-        }
-        AuthnStatementType authn =  (AuthnStatementType)context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
-        if (authn != null && authn.getSessionIndex() != null) {
-            authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
-
-        }
-    }
-
-	@Override
-    public IdentityProviderDataMarshaller getMarshaller() {
-		logger.info("Creating EidasSAMLDataMarshaller");
-        return new EidasSAMLDataMarshaller();
-    }
-	
-	private class EidasExtensionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
-
-		public static final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions";
-		public static final String EIDAS_PREFIX = "eidas";
-
-		@Override
-		public void write(XMLStreamWriter writer) throws ProcessingException {
-			StaxUtil.writeNameSpace(writer, EIDAS_PREFIX, EIDAS_NS_URI);
-
-			StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "SPType", EIDAS_NS_URI);
-			if (getConfig().isPrivateServiceProvider()) {
-				StaxUtil.writeCharacters(writer, "private");
-			} else {
-				StaxUtil.writeCharacters(writer, "public");
-			}
-			StaxUtil.writeEndElement(writer);
-
-			List<RequestedAttribute> requestedAttributes = getRequestedAttributes();
-			if (!requestedAttributes.isEmpty()) {
-				StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttributes", EIDAS_NS_URI);
-
-				for (RequestedAttribute ra : requestedAttributes) {
-					StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "RequestedAttribute", EIDAS_NS_URI);
-					StaxUtil.writeAttribute(writer, "Name", ra.getName());
-					StaxUtil.writeAttribute(writer, "NameFormat", ra.getNameFormat());
-					StaxUtil.writeAttribute(writer, "isRequired", String.valueOf(ra.isRequired()));
-					StaxUtil.writeEndElement(writer);
-				}
-
-				StaxUtil.writeEndElement(writer);
-			}
-
-			StaxUtil.flush(writer);
+		ResponseType responseType = (ResponseType) context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
+		AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
+		logger.info("Assertion=" + assertion);
+		SubjectType subject = assertion.getSubject();
+		SubjectType.STSubType subType = subject.getSubType();
+		if (subType != null) {
+			NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID,
+					subjectNameID.serializeAsString());
+		}
+		AuthnStatementType authn = (AuthnStatementType) context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
+		if (authn != null && authn.getSessionIndex() != null) {
+			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
 		}
 	}
+
+	@Override
+	public IdentityProviderDataMarshaller getMarshaller() {
+		return new EidasSAMLDataMarshaller();
+	}
+
 }
