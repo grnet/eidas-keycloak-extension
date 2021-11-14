@@ -11,6 +11,7 @@ public class EidasNodeCountryExtensionGenerator implements SamlProtocolExtension
 
 	public static final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions";
 	public static final String EIDAS_PREFIX = "eidas";
+	public static final String pattern = "^[A-Za-z][A-Za-z]$";
 
 	protected static final Logger logger = Logger.getLogger(EidasNodeCountryExtensionGenerator.class);
 
@@ -22,6 +23,11 @@ public class EidasNodeCountryExtensionGenerator implements SamlProtocolExtension
 
 	@Override
 	public void write(XMLStreamWriter writer) throws ProcessingException {
+		if (!nodeCountry.trim().matches(pattern)) { 
+			logger.debug("Skipping invalid node country code.");
+			return;
+		}
+		
 		StaxUtil.writeNameSpace(writer, EIDAS_PREFIX, EIDAS_NS_URI);
 		StaxUtil.writeStartElement(writer, EIDAS_PREFIX, "NodeCountry", EIDAS_NS_URI);
 		StaxUtil.writeCharacters(writer, nodeCountry);
