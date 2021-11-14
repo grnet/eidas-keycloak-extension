@@ -6,10 +6,11 @@ import org.keycloak.models.IdentityProviderModel;
 public class EidasSAMLIdentityProviderConfig extends SAMLIdentityProviderConfig {
 
 	private static final long serialVersionUID = 3296255033084690635L;
-	
+
 	public static final String LEVEL_OF_ASSURANCE = "levelOfAssurance";
 	public static final String PRIVATE_SERVICE_PROVIDER = "privateServiceProvider";
 	public static final String REQUESTED_ATTRIBUTES = "requestedAttributes";
+	public static final String SERVICE_PROVIDER_COUNTRY_OF_ORIGIN = "serviceProviderCountryOfOrigin";
 
 	public EidasSAMLIdentityProviderConfig() {
 	}
@@ -40,6 +41,14 @@ public class EidasSAMLIdentityProviderConfig extends SAMLIdentityProviderConfig 
 
 	public String getRequestedAttributes() {
 		return getConfig().get(REQUESTED_ATTRIBUTES);
+	}
+
+	public String getServiceProviderCountryOfOrigin() {
+		return getConfig().get(SERVICE_PROVIDER_COUNTRY_OF_ORIGIN);
+	}
+
+	public void setServiceProviderCountryOfOrigin(String serviceProviderCountryOfOrigin) {
+		getConfig().put(SERVICE_PROVIDER_COUNTRY_OF_ORIGIN, serviceProviderCountryOfOrigin);
 	}
 
 }

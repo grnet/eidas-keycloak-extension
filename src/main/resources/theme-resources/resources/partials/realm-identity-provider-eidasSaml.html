@@ -319,7 +319,7 @@
             </div>
         </fieldset>
         <fieldset>
-            <legend collapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>
+            <legend uncollapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>
 
             <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="authnContextComparisonType">{{:: 'identity-provider.saml.authncontext-comparison-type' | translate}}</label>
@@ -384,6 +384,16 @@
         </fieldset>
         <fieldset>
             <legend uncollapsed><span class="text">{{:: 'identity-provider.eidas.saml.eidas-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.eidas.saml.eidas-config.tooltip' | translate}}</kc-tooltip></legend>
+           
+           <div class="form-group clearfix block">
+                <label class="col-md-2 control-label" for="serviceProviderCountryOfOrigin">{{:: 'identity-provider.eidas.saml.service-provider-country-of-origin' | translate}}</label>
+                <div class="col-md-6">
+                    <div>
+                        <input class="form-control" id="serviceProviderCountryOfOrigin" type="text" ng-model="identityProvider.config.serviceProviderCountryOfOrigin">
+                    </div>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.eidas.saml.service-provider-country-of-origin.tooltip' | translate}}</kc-tooltip>
+            </div>
            
             <div class="form-group clearfix block">
                 <label class="col-md-2 control-label" for="levelOfAssurance">{{:: 'identity-provider.eidas.saml.level-of-assurance' | translate}}</label>
