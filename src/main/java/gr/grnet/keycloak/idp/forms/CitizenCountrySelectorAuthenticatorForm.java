@@ -1,11 +1,16 @@
 package gr.grnet.keycloak.idp.forms;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
+import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -20,9 +25,22 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
 
-		// Note that you can use the `session` to access Keycloak's services.
+		// get config
+		AuthenticatorConfigModel config = context.getAuthenticatorConfig();
+		String countriesList = config.getConfig()
+				.get(CitizenCountrySelectorAuthenticatorFormFactory.CITIZEN_COUNTRY_LIST);
+		List<String> countries;
 
-		Response response = context.form().createForm("citizen-country-select-form.ftl");
+		if (countriesList == null) {
+			countries = new ArrayList<>();
+		} else {
+			countries = Arrays.asList(countriesList.split("##"));
+		}
+
+		LOG.info("Countries from config = " + countries);
+
+		Response response = context.form().setAttribute("availablecountries", countries)
+				.createForm("citizen-country-select-form.ftl");
 
 		context.challenge(response);
 	}

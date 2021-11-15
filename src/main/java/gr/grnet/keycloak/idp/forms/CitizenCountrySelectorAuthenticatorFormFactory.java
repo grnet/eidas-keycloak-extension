@@ -1,5 +1,8 @@
 package gr.grnet.keycloak.idp.forms;
 
+import static org.keycloak.provider.ProviderConfigProperty.MULTIVALUED_STRING_TYPE;
+
+import java.util.Collections;
 import java.util.List;
 
 import org.keycloak.Config;
@@ -12,7 +15,12 @@ import org.keycloak.provider.ProviderConfigProperty;
 
 public class CitizenCountrySelectorAuthenticatorFormFactory implements AuthenticatorFactory {
 
-	private static final String PROVIDER_ID = "auth-select-citizen-country";
+	public static final String PROVIDER_ID = "auth-select-citizen-country";
+	public static final String CITIZEN_COUNTRY_LIST = "citizenCountryList";
+
+	protected static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
+			AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.ALTERNATIVE,
+			AuthenticationExecutionModel.Requirement.DISABLED };
 
 	@Override
 	public String getDisplayType() {
@@ -26,11 +34,8 @@ public class CitizenCountrySelectorAuthenticatorFormFactory implements Authentic
 
 	@Override
 	public boolean isConfigurable() {
-		return false;
+		return true;
 	}
-
-	public static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
-			AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED };
 
 	@Override
 	public AuthenticationExecutionModel.Requirement[] getRequirementChoices() {
@@ -49,7 +54,9 @@ public class CitizenCountrySelectorAuthenticatorFormFactory implements Authentic
 
 	@Override
 	public List<ProviderConfigProperty> getConfigProperties() {
-		return null;
+		ProviderConfigProperty rep = new ProviderConfigProperty(CITIZEN_COUNTRY_LIST, "Citizen Country List",
+				"List of supported citizen's countries.", MULTIVALUED_STRING_TYPE, null);
+		return Collections.singletonList(rep);
 	}
 
 	@Override
