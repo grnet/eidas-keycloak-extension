@@ -18,6 +18,8 @@ import org.w3c.dom.Document;
 
 public class EidasJaxrsSAML2BindingBuilder extends BaseSAML2BindingBuilder<EidasJaxrsSAML2BindingBuilder> {
 
+	public static final String COUNTRY = "country";
+	
     private final KeycloakSession session;
     private String country;
 
@@ -25,7 +27,7 @@ public class EidasJaxrsSAML2BindingBuilder extends BaseSAML2BindingBuilder<Eidas
         this.session = session;
     }
     
-    public EidasJaxrsSAML2BindingBuilder country(String country) {
+	public EidasJaxrsSAML2BindingBuilder country(String country) {
         this.country = country;
         return this;
     }
@@ -51,11 +53,19 @@ public class EidasJaxrsSAML2BindingBuilder extends BaseSAML2BindingBuilder<Eidas
             if (this.getRelayState() != null) {
                 formData.add(GeneralConstants.RELAY_STATE, this.getRelayState());
             }
+            
+            // eIDAS specific - add country
+            if (country != null) { 
+            	formData.add(COUNTRY, country);
+            }
 
             return session.getProvider(LoginFormsProvider.class).setFormData(formData).createSamlPostForm();
         }
     }
 
+    // TODO
+    // TODO: fix this to also support country parameter
+    // TODO
     public static class RedirectBindingBuilder extends BaseRedirectBindingBuilder {
         public RedirectBindingBuilder(EidasJaxrsSAML2BindingBuilder builder, Document document) throws ProcessingException {
             super(builder, document);
