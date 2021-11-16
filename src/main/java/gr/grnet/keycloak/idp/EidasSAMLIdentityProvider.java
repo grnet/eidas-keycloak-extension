@@ -69,6 +69,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import gr.grnet.keycloak.idp.forms.CitizenCountrySelectorAuthenticatorForm;
+
 public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	private final EidasSAMLIdentityProviderConfig config;
@@ -142,6 +144,15 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 			// eIDAS specific action, add the extensions
 			authnRequestBuilder.addExtension(new EidasExtensionGenerator(getConfig()));
+			
+			// Try to figure out citizen's country. This should be set using a CitizenCountrySelectorAuthenticatorForm
+			// in the login flow.
+			String country = request.getAuthenticationSession().getUserSessionNotes().get(CitizenCountrySelectorAuthenticatorForm.CITIZEN_COUNTRY);
+			if (country == null) { 
+				logger.info("Country not found");
+			} else { 
+				logger.info("Country selected=" + country);
+			}
 
 			EidasJaxrsSAML2BindingBuilder binding = new EidasJaxrsSAML2BindingBuilder(session)
 					.relayState(request.getState().getEncoded());

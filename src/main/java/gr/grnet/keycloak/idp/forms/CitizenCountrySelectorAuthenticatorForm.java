@@ -41,7 +41,7 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 			countries = Arrays.asList(countriesList.split("##"));
 		}
 
-		LOG.info("Countries from config = " + countries);
+		LOG.debug("Countries from config = " + countries);
 
 		Response response = context.form().setAttribute("availablecountries", countries)
 				.createForm("citizen-country-select-form.ftl");
@@ -68,7 +68,7 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 		String country = formData.getFirst("country");
 
-		LOG.infof("Retrieved country=%s", country);
+		LOG.debugf("Retrieved country=%s", country);
 
 		if (country != null && !country.trim().isEmpty()) {
 			// Add selected information to authentication session
