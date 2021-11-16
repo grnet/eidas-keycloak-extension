@@ -117,7 +117,7 @@ public class EidasSAMLAttributeValueParser implements StaxParser {
 					logger.debug("Handling eIDAS specific type " + typeValuePart + " as date");
 					return XMLTimeUtil.parse(StaxParserUtil.getElementText(xmlEventReader));
 				} else if (EIDAS_TYPES_ANYTYPE.contains(typeValuePart)) { 
-					logger.debug("Handling eIDAS specific type " + typeValuePart + " as any time");
+					logger.debug("Handling eIDAS specific type " + typeValuePart + " as any type");
 					return parseAnyTypeAsString(xmlEventReader);
 				}
 			}

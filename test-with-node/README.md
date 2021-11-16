@@ -70,8 +70,21 @@ In order to use this setup you need to edit `/etc/hosts` and add
 
 # Mappers 
 
-Go to "Mappers" tab of eidas-saml identity provider and create the following mappers: 
+Go to "Mappers" tab of eidas-saml identity provider and create the following mapper. This is 
+important in order to users to be correctly mapped to federated ids based on their countries.
 
+ - Username Template Importer
+   - Name: Broker ID importer
+   - Template: ${ALIAS}.${ATTRIBUTE.PersonIdentifier}
+   - Target: BROKER_ID
+
+Additionally create others like the following, to adjust local username or import additional 
+attributes:
+
+ - Username Template Importer
+   - Name: Local Username importer
+   - Template: ${ALIAS}.${ATTRIBUTE.PersonIdentifier}
+   - Target: LOCAL
  - Attribute Importer with 
    - Name: Gender
    - Friendly Name: Gender
@@ -80,9 +93,6 @@ Go to "Mappers" tab of eidas-saml identity provider and create the following map
    - Name: DateOfBirth
    - Friendly Name: DateOfBirth
    - User Attribute Name: DateOfBirth
- - Username Template Importer with
-   - Name: Username importer
-   - Template: ${ALIAS}.${NAMEID}
 
 # Authentication Login Flow 
 

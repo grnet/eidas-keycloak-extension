@@ -48,8 +48,8 @@ public class EidasUserAttributeMapper extends AbstractIdentityProviderMapper imp
     public static final String ATTRIBUTE_FRIENDLY_NAME = "attribute.friendly.name";
     public static final String USER_ATTRIBUTE = "user.attribute";
     private static final String EMAIL = "email";
-    private static final String FIRST_NAME = "firstName";
-    private static final String LAST_NAME = "lastName";
+    private static final String FIRST_NAME = "CurrentGivenName";
+    private static final String LAST_NAME = "CurrentFamilyName";
     private static final Set<IdentityProviderSyncMode> IDENTITY_PROVIDER_SYNC_MODES = new HashSet<>(Arrays.asList(IdentityProviderSyncMode.values()));
 
     static {
@@ -178,6 +178,7 @@ public class EidasUserAttributeMapper extends AbstractIdentityProviderMapper imp
         }
         String attributeName = getAttributeNameFromMapperModel(mapperModel);
         List<String> attributeValuesInContext = findAttributeValuesInContext(attributeName, context);
+        
         if (attribute.equalsIgnoreCase(EMAIL)) {
             setIfNotEmptyAndDifferent(user::setEmail, user::getEmail, attributeValuesInContext);
         } else if (attribute.equalsIgnoreCase(FIRST_NAME)) {
