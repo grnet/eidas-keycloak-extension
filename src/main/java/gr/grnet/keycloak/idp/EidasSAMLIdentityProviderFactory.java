@@ -8,7 +8,7 @@ import org.keycloak.saml.validators.DestinationValidator;
 
 public class EidasSAMLIdentityProviderFactory extends SAMLIdentityProviderFactory {
 
-	public static final String PROVIDER_ID = "eidasSaml";
+	public static final String PROVIDER_ID = "eidas-saml";
 
 	private DestinationValidator destinationValidator;
 
@@ -19,7 +19,7 @@ public class EidasSAMLIdentityProviderFactory extends SAMLIdentityProviderFactor
 
 	@Override
 	public String getName() {
-		return "eIDAS SAML";
+		return "eIDAS SAML v2.0";
 	}
 
 	@Override

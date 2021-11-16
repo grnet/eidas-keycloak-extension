@@ -2,8 +2,8 @@
 <jboss-deployment-structure>
     <deployment>
         <dependencies>
-        	<module name="org.keycloak.keycloak-saml-core" />
-        	<module name="org.keycloak.keycloak-saml-core-public" />
+            <module name="org.keycloak.keycloak-saml-core" />
+            <module name="org.keycloak.keycloak-saml-core-public" />
             <module name="org.keycloak.keycloak-services" />
             <module name="org.keycloak.keycloak-core" />
             <module name="org.keycloak.keycloak-server-spi-private" />

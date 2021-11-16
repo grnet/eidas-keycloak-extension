@@ -1,7 +1,7 @@
 
 # How to use this setup
 
-We use three hostname which are 
+We use three hostnames which are 
 
  - The greek node running as country CA at http://ca.node.test
  - The generic node running as country CB at http://cb.node.test
@@ -33,11 +33,11 @@ In order to use this setup you need to edit `/etc/hosts` and add
    ```
 
    It is very important that the country of the certificate is `C=CA` in order for the node to find the 
-   country of the SP (keycloak in this case). The actual file is located at `etc/keycloak/certs/keycloak.jks` and it mounted inside the keycloak container at `/opt/keycloak.jsk`. The key alias is `selfsigned`. 
+   country of the SP (keycloak in this case). The actual file is located at `etc/keycloak/certs/keycloak.jks` and is mounted inside the keycloak container at `/opt/keycloak.jsk`. The key alias is `selfsigned`. 
 
  - Disable all other key providers except for `hmac-generated`. 
- - Go at `Identity Providers` and add a new `eidas SAML`. 
- - Set `Service Provider Entity ID` as `http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint/descriptor`
+ - Go at `Identity Providers` and add a new `eIDAS SAML v2.0`. 
+ - Set `Service Provider Entity ID` as `http://keycloak.test/auth/realms/test/broker/eidas-saml/endpoint/descriptor`
  - Set `Single Sign-On Service URL` as `http://ca.node.test/SpecificConnector/ServiceProvider`
  - Set `Allow create` to `ON`
  - Set `HTTP-POST Binding Response` to `ON`
@@ -62,16 +62,51 @@ In order to use this setup you need to edit `/etc/hosts` and add
    {"Name":"http://eidas.europa.eu/attributes/naturalperson/CurrentGivenName",
     "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true},
    {"Name":"http://eidas.europa.eu/attributes/naturalperson/DateOfBirth",
-    "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true}
+    "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":true},
+   {"Name":"http://eidas.europa.eu/attributes/naturalperson/Gender",
+    "NameFormat": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri", "isRequired":false}
   ]
   ```
+
+# Mappers 
+
+Go to "Mappers" tab of eidas-saml identity provider and create the following mappers: 
+
+ - Attribute Importer with 
+   - Name: Gender
+   - Friendly Name: Gender
+   - User Attribute Name: Gender
+ - Attribute Importer with 
+   - Name: DateOfBirth
+   - Friendly Name: DateOfBirth
+   - User Attribute Name: DateOfBirth
+ - Username Template Importer with
+   - Name: Username importer
+   - Template: ${ALIAS}.${NAMEID}
+
+# Authentication Login Flow 
+
+In order to allow for selecting the citizen country you need to setup a custom login flow. 
+
+ - Open Authentication 
+ - Go to Flows and copy the "Browser" flow to an "eIDAS Browser"
+ - Keep the following setup 
+   - Cookie (ALTERNATIVE)
+   - Flow eIDAS (ALTERNATIVE)
+     - Subflow "Citizen Country Selection" (REQUIRED)
+     - Identity Provider Redirector (REQUIRED) 
+
+Adjust the configuration for "Citizen Country Selection" to contain the list of countries CA and CB.
+Adjust the configuration for "Identity Provider Redirector" with default provider "eidas-saml".
+
+Now go to "Bindings" and set as Browser Flow the "eIDAS Browser".
 
 # CA node setup 
 
 This setup is already performed and the files are preloaded, but we document it here for reference. 
 
  - Open `etc/config-ca/tomcat/specificConnector/metadata/MetadataFetcher_Provider.properties` and add 
-   `http://keycloak.test/auth/realms/test/broker/eidasSaml/endpoint/descriptor` to the whitelist. 
+   `http://keycloak.test/auth/realms/test/broker/eidas-saml/endpoint/descriptor` to the whitelist. 
  - Copy the `keystore` certificate from the previous section, convert it to a `.pem` file and add it 
    as a file inside `etc/config-ca/tomcat/specificConnector/metadata-certs/`. The file name does not 
    matter. Make sure you use something like `https://www.samltool.com/format_x509cert.php` to convert

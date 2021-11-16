@@ -45,7 +45,6 @@ import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
-import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
@@ -90,7 +89,6 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	@Override
 	public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-		logger.info("Creating EidasSAMLEndpoint");
 		return new EidasSAMLEndpoint(realm, this, getConfig(), callback, destinationValidator);
 	}
 
