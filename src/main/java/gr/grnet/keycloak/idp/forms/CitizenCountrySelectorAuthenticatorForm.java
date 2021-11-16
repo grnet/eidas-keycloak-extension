@@ -71,8 +71,8 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 		LOG.debugf("Retrieved country=%s", country);
 
 		if (country != null && !country.trim().isEmpty()) {
-			// Add selected information to authentication session
-			context.getAuthenticationSession().setUserSessionNote(CITIZEN_COUNTRY, country);
+			// Add selected information to auth note 
+			context.getAuthenticationSession().setAuthNote(CITIZEN_COUNTRY, country);
 		}
 
 		context.success();

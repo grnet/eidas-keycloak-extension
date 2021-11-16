@@ -145,17 +145,14 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			// eIDAS specific action, add the extensions
 			authnRequestBuilder.addExtension(new EidasExtensionGenerator(getConfig()));
 			
-			// Try to figure out citizen's country. This should be set using a CitizenCountrySelectorAuthenticatorForm
+			// eIDAS specific action, try to figure out citizen's country. This should be set using a CitizenCountrySelectorAuthenticatorForm
 			// in the login flow.
-			String country = request.getAuthenticationSession().getUserSessionNotes().get(CitizenCountrySelectorAuthenticatorForm.CITIZEN_COUNTRY);
-			if (country == null) { 
-				logger.info("Country not found");
-			} else { 
-				logger.info("Country selected=" + country);
-			}
+			String country = request.getAuthenticationSession().getAuthNote(CitizenCountrySelectorAuthenticatorForm.CITIZEN_COUNTRY);
+			logger.info("Citizen Country selected=" + country);
 
 			EidasJaxrsSAML2BindingBuilder binding = new EidasJaxrsSAML2BindingBuilder(session)
-					.relayState(request.getState().getEncoded());
+					.relayState(request.getState().getEncoded())
+					.country(country);
 			boolean postBinding = getConfig().isPostBindingAuthnRequest();
 
 			if (getConfig().isWantAuthnRequestsSigned()) {

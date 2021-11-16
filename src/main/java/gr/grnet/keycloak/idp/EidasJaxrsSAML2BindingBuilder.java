@@ -19,9 +19,15 @@ import org.w3c.dom.Document;
 public class EidasJaxrsSAML2BindingBuilder extends BaseSAML2BindingBuilder<EidasJaxrsSAML2BindingBuilder> {
 
     private final KeycloakSession session;
+    private String country;
 
     public EidasJaxrsSAML2BindingBuilder(KeycloakSession session) {
         this.session = session;
+    }
+    
+    public EidasJaxrsSAML2BindingBuilder country(String country) {
+        this.country = country;
+        return this;
     }
 
     public class PostBindingBuilder extends BasePostBindingBuilder {
