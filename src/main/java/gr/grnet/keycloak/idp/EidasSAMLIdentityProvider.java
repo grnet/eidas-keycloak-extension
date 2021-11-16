@@ -69,7 +69,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-
 public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	private final EidasSAMLIdentityProviderConfig config;
@@ -144,7 +143,7 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			// eIDAS specific action, add the extensions
 			authnRequestBuilder.addExtension(new EidasExtensionGenerator(getConfig()));
 
-			JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
+			EidasJaxrsSAML2BindingBuilder binding = new EidasJaxrsSAML2BindingBuilder(session)
 					.relayState(request.getState().getEncoded());
 			boolean postBinding = getConfig().isPostBindingAuthnRequest();
 
@@ -189,10 +188,8 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	@Override
 	public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
-		logger.info("Authentication finished");
 		ResponseType responseType = (ResponseType) context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
 		AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
-		logger.info("Assertion=" + assertion);
 		SubjectType subject = assertion.getSubject();
 		SubjectType.STSubType subType = subject.getSubType();
 		if (subType != null) {
@@ -385,13 +382,8 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 		if (extensions == null) {
 			extensions = new ExtensionsType();
 			spDescriptor.setExtensions(extensions);
-		} else {
-			logger.info("Found extensions type already non-null");
 		}
-
 		extensions.addExtension(new EidasNodeCountryExtensionGenerator(nodeCountry));
-
-		logger.info("TODO: add <eidas:NodeCountry>EU</eidas:NodeCountry>");
 	}
 
 }

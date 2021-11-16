@@ -19,13 +19,17 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 
 	private static final Logger LOG = Logger.getLogger(CitizenCountrySelectorAuthenticatorForm.class);
 
+	/**
+	 * Property added in user's session note.
+	 */
+	public static final String CITIZEN_COUNTRY = "citizen.country";
+
 	public CitizenCountrySelectorAuthenticatorForm() {
 	}
 
 	@Override
 	public void authenticate(AuthenticationFlowContext context) {
-
-		// get config
+		// get countries list from configuration
 		AuthenticatorConfigModel config = context.getAuthenticatorConfig();
 		String countriesList = config.getConfig()
 				.get(CitizenCountrySelectorAuthenticatorFormFactory.CITIZEN_COUNTRY_LIST);
@@ -61,7 +65,6 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
-
 		MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
 		String country = formData.getFirst("country");
 
@@ -69,7 +72,7 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 
 		if (country != null && !country.trim().isEmpty()) {
 			// Add selected information to authentication session
-			context.getAuthenticationSession().setUserSessionNote("country", country);
+			context.getAuthenticationSession().setUserSessionNote(CITIZEN_COUNTRY, country);
 		}
 
 		context.success();
