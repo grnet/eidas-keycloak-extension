@@ -1,4 +1,4 @@
-package gr.grnet.keycloak.idp;
+package gr.grnet.keycloak.idp.saml;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;

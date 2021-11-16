@@ -1,4 +1,4 @@
-package gr.grnet.keycloak.idp;
+package gr.grnet.keycloak.idp.saml;
 
 import java.io.IOException;
 import java.net.URI;
@@ -98,6 +98,8 @@ import org.keycloak.sessions.AuthenticationSessionModel;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import gr.grnet.keycloak.idp.EidasSAMLIdentityProvider;
+import gr.grnet.keycloak.idp.EidasSAMLIdentityProviderConfig;
 import gr.grnet.keycloak.idp.parsers.EidasAssertionUtil;
 import gr.grnet.keycloak.idp.parsers.EidasSAMLRequestParser;
 

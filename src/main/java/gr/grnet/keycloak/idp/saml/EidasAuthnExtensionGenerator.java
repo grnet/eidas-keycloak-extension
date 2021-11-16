@@ -1,4 +1,4 @@
-package gr.grnet.keycloak.idp;
+package gr.grnet.keycloak.idp.saml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,16 +12,18 @@ import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.util.JsonSerialization;
 
-public class EidasExtensionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
+import gr.grnet.keycloak.idp.EidasSAMLIdentityProviderConfig;
+
+public class EidasAuthnExtensionGenerator implements SamlProtocolExtensionsAwareBuilder.NodeGenerator {
 
 	public static final String EIDAS_NS_URI = "http://eidas.europa.eu/saml-extensions";
 	public static final String EIDAS_PREFIX = "eidas";
 
-	protected static final Logger logger = Logger.getLogger(EidasExtensionGenerator.class);
+	protected static final Logger logger = Logger.getLogger(EidasAuthnExtensionGenerator.class);
 
 	private EidasSAMLIdentityProviderConfig config;
 
-	public EidasExtensionGenerator(EidasSAMLIdentityProviderConfig config) {
+	public EidasAuthnExtensionGenerator(EidasSAMLIdentityProviderConfig config) {
 		this.config = config;
 	}
 

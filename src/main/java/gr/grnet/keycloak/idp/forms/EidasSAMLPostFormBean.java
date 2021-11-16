@@ -3,7 +3,7 @@ package gr.grnet.keycloak.idp.forms;
 import javax.ws.rs.core.MultivaluedMap;
 import org.keycloak.saml.common.constants.GeneralConstants;
 
-import gr.grnet.keycloak.idp.EidasJaxrsSAML2BindingBuilder;
+import gr.grnet.keycloak.idp.saml.EidasJaxrsSAML2BindingBuilder;
 
 public class EidasSAMLPostFormBean {
 

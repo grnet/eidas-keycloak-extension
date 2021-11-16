@@ -69,6 +69,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import gr.grnet.keycloak.idp.forms.CitizenCountrySelectorAuthenticatorForm;
+import gr.grnet.keycloak.idp.saml.EidasAuthnExtensionGenerator;
+import gr.grnet.keycloak.idp.saml.EidasJaxrsSAML2BindingBuilder;
+import gr.grnet.keycloak.idp.saml.EidasNodeCountryExtensionGenerator;
+import gr.grnet.keycloak.idp.saml.EidasSAMLDataMarshaller;
+import gr.grnet.keycloak.idp.saml.EidasSAMLEndpoint;
+import gr.grnet.keycloak.idp.saml.EidasSAMLMetadataWriter;
 
 public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
@@ -141,12 +147,12 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 					.requestedAuthnContext(requestedAuthnContext).subject(loginHint);
 
 			// eIDAS specific action, add the extensions
-			authnRequestBuilder.addExtension(new EidasExtensionGenerator(getConfig()));
+			authnRequestBuilder.addExtension(new EidasAuthnExtensionGenerator(getConfig()));
 			
 			// eIDAS specific action, try to figure out citizen's country. This should be set using a CitizenCountrySelectorAuthenticatorForm
 			// in the login flow.
 			String country = request.getAuthenticationSession().getAuthNote(CitizenCountrySelectorAuthenticatorForm.CITIZEN_COUNTRY);
-			logger.info("Citizen Country selected=" + country);
+			logger.debug("Citizen Country selected=" + country);
 
 			EidasJaxrsSAML2BindingBuilder binding = new EidasJaxrsSAML2BindingBuilder(session)
 					.relayState(request.getState().getEncoded())

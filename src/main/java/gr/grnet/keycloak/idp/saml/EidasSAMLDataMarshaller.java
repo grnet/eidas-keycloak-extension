@@ -1,4 +1,4 @@
-package gr.grnet.keycloak.idp;
+package gr.grnet.keycloak.idp.saml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
