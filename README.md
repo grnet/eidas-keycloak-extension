@@ -1,15 +1,21 @@
 # Eidas Keycloak Extension
 
-An identity provider extension which supports brokering identity to an eIDAS node.
+This repository contains a keycloak extension which adds support for the SAML v2.0 dialect of the eIDAS nodes.
+It provides an identity provider extension which allows keycloak to setup as an "identity broker". 
 
 # Build
 
-You can build the project using maven (ex mvn clean package) and then deploy the jar file to a keycloak installation. 
+Build the project using maven
 
-# Development
+```
+mvn clean install
+```
 
-There is a docker-compose file inside the ./test folder. You may test the module by coping the Jar file to the ./test/deployments folder and then start keycloak using docker.
+# Installation 
 
-# Notes
+Copy the jar file located at `target/` into the keycloak deployments folder.
 
-On startup, keycloak will cache all UI relevant component (themes,extentions etc). See [this](https://wjw465150.gitbooks.io/keycloak-documentation/content/server_installation/topics/cache/disable.html) documentation in order to disable cache or simply do a `docker-compose rm keycloak` to drop the container and clean all caches 
+# License 
+
+Apache License, Version 2.0
+
