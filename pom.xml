@@ -10,7 +10,7 @@
 	<properties>
 		<javaVersion>1.8</javaVersion>
 		<keycloakVersion>15.0.2</keycloakVersion>
-		<eidas-opensaml.version>2.1.0</eidas-opensaml.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>			
 	</properties>
 
 	<dependencies>
