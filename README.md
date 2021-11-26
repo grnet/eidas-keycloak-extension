@@ -12,14 +12,22 @@ from EU member states according to the eIDAS Regulation in order to ensure that 
 their own national eIDs (electronic identification schemes) to access public services available online in 
 other countries.
 
-aThe eIDAS Nodes use an extended version of SAML v2.0 which defines a number of SAML elements and attribute 
+The eIDAS Nodes use an extended version of SAML v2.0 which defines a number of SAML elements and attribute 
 definitions which are not supported by default in standard SAML implementations. This extension provides support 
 for these extensions, by offering a custom IdP which can use this extended dialect.
 
+See [eIDAS+eID+Profile](https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/eIDAS+eID+Profile) and the 
+following documents for the v1.2 technical specifications:
+
+  * [eIDAS - Interoperability Architecture v1.2](https://ec.europa.eu/cefdigital/wiki/download/attachments/82773108/eIDAS%20Interoperability%20Architecture%20v.1.2%20Final.pdf)
+  * [eIDAS - Cryptographic requirements for the Interoperability Framework v1.2](https://ec.europa.eu/cefdigital/wiki/download/attachments/82773108/eIDAS%20Cryptographic%20Requirement%20v.1.2%20Final.pdf)
+  * [eIDAS SAML Message Format v1.2](https://ec.europa.eu/cefdigital/wiki/download/attachments/82773108/eIDAS%20SAML%20Message%20Format%20v.1.2%20Final.pdf)
+  * [eIDAS SAML Attribute Profile v1.2](https://ec.europa.eu/cefdigital/wiki/download/attachments/82773108/eIDAS%20SAML%20Attribute%20Profile%20v1.2%20Final.pdf) 
+
 # Installation 
 
-Download the latest release jar from the releases page. Then deploy it in keycloak by copying it at location 
-`KEYCLOAK_HOME/standalone/deployments/` folder. See the keycloak [documentation](https://www.keycloak.org/docs/latest/server_installation/index.html#distribution-directory-structure) for the directory structure of the keycloak server.
+Download the latest release jar from the releases page. Then deploy it in keycloak by copying it at folder
+`KEYCLOAK_HOME/standalone/deployments/`. See the keycloak [documentation](https://www.keycloak.org/docs/latest/server_installation/index.html#distribution-directory-structure) for the directory structure of the keycloak server.
 
 # Providers 
 
@@ -27,8 +35,8 @@ The extension provides the following components which are needed in order to con
 the extended definitions of the eIDAS technical specifications: 
 
   * Identity provider "eIDAS SAML v2.0" which is an extended version of the default "SAML v2.0" IdP.
-  * Mapper "Attribute Importer" which can be used import additional attributes 
   * Mapper "Username Template Importer" which can be used to setup the ID or username for federated user lookup.
+  * Mapper "Attribute Importer" which can be used import additional attributes.
   * Authenticator "Citizen Country Selection" which can collect the citizen country before authentication. 
 
 # Setup
