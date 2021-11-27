@@ -59,6 +59,8 @@ the extended definitions of the eIDAS technical specifications:
   * Set the new flow as default in the "Brower Flow" bindings.
   * Adjust depending on your use case the "First Broker Login" and additional properties.
 
+You can find a very simple howto guide at [howto/README.md](howto/README.md).
+
 # Build and Install
 
 Build the project using maven
