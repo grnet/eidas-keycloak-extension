@@ -29,6 +29,14 @@ following documents for the v1.2 technical specifications:
 Download the latest release jar from the releases page. Then deploy it in keycloak by copying it at folder
 `KEYCLOAK_HOME/standalone/deployments/`. See the keycloak [documentation](https://www.keycloak.org/docs/latest/server_installation/index.html#distribution-directory-structure) for the directory structure of the keycloak server.
 
+# Compatibility 
+
+
+| Extension version | Keycloak version |
+|-------------------|------------------|
+| 0.5               | 15.0.2+          |
+
+
 # Providers 
 
 The extension provides the following components which are needed in order to connect to an eIDAS node using 
