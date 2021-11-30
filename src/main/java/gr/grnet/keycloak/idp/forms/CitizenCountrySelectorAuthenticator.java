@@ -35,16 +35,16 @@ import org.keycloak.models.UserModel;
  * results is stored in an authentication note, in order to be used later in the
  * flow.
  */
-public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
+public class CitizenCountrySelectorAuthenticator implements Authenticator {
 
-	private static final Logger LOG = Logger.getLogger(CitizenCountrySelectorAuthenticatorForm.class);
+	private static final Logger LOG = Logger.getLogger(CitizenCountrySelectorAuthenticator.class);
 
 	/**
 	 * Property added in user's session note.
 	 */
 	public static final String CITIZEN_COUNTRY = "citizen.country";
 
-	public CitizenCountrySelectorAuthenticatorForm() {
+	public CitizenCountrySelectorAuthenticator() {
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class CitizenCountrySelectorAuthenticatorForm implements Authenticator {
 		// get countries list from configuration
 		AuthenticatorConfigModel config = context.getAuthenticatorConfig();
 		String countriesList = config.getConfig()
-				.get(CitizenCountrySelectorAuthenticatorFormFactory.CITIZEN_COUNTRY_LIST);
+				.get(CitizenCountrySelectorAuthenticatorFactory.CITIZEN_COUNTRY_LIST);
 		List<String> countries;
 
 		if (countriesList == null) {

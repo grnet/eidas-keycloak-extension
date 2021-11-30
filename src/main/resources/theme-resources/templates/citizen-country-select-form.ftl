@@ -5,18 +5,16 @@
     <#elseif section = "header">
         Citizen country
     <#elseif section = "form">
-        <p>Please select a citizen country:</p>
-        <form action="${url.loginAction}" class="${properties.kcFormClass!}" id="kc-u2f-login-form" method="post">
-
-            <datalist id="countrylist">
-                <#list availablecountries as country>
-                    <option value="${country}">
-                </#list>
-            </datalist>
+        <form action="${url.loginAction}" class="${properties.kcFormClass!}" id="kc-citizen-form" method="post">
 
             <div>
                 <label for="country">Citizen Country</label>
-                <input id="country" name="country" list="countrylist"/>
+                <select id="country" name="country">
+                    <option hidden disabled selected value></option>
+	                <#list availablecountries as country>
+	                    <option value="${country}">${country}</option>
+	                </#list>
+                </select>
             </div>
 
             <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonLargeClass!}"

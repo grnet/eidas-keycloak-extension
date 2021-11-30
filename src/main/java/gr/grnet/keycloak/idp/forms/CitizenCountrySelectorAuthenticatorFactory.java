@@ -28,9 +28,11 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.provider.ProviderConfigProperty;
 
-public class CitizenCountrySelectorAuthenticatorFormFactory implements AuthenticatorFactory {
+public class CitizenCountrySelectorAuthenticatorFactory implements AuthenticatorFactory {
 
 	public static final String PROVIDER_ID = "auth-select-citizen-country";
+	public static final CitizenCountrySelectorAuthenticator SINGLETON = new CitizenCountrySelectorAuthenticator();
+
 	public static final String CITIZEN_COUNTRY_LIST = "citizenCountryList";
 
 	protected static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
@@ -81,7 +83,7 @@ public class CitizenCountrySelectorAuthenticatorFormFactory implements Authentic
 
 	@Override
 	public Authenticator create(KeycloakSession session) {
-		return new CitizenCountrySelectorAuthenticatorForm();
+		return SINGLETON;
 	}
 
 	@Override
