@@ -10,7 +10,7 @@ We assume that you already have a keycloak instance running at `https://keycloak
 have installed this extension by copying the jar file to `$KEYCLOAK_HOME/standalone/deployments/`. We are going to 
 work in a realm called `eidrealm`.
 
-Your keycloak installation will play the role of the service provider (SP). You will need to acquire a X.509 certificate which contains the proper common name (CN) and country code (C). Depending on the eIDAS node that you are trying to connect, it might be a requirement that the SP country and the eIDAS node country at the same. 
+Your keycloak installation will play the role of the service provider (SP). You will need to acquire a X.509 certificate which contains the proper common name (CN) and country code (C). Depending on the eIDAS node that you are trying to connect, it might be a requirement that the SP country and the eIDAS node country are the same. 
 
 ## SP (Keycloak) Certificate
 
@@ -54,7 +54,8 @@ Switch to `Identity Providers` and add a new provider of type `eIDAS SAML v2.0`.
 <img src="idp-settings-1.png" alt="IdP Basic Settings" style="width:75%;" />
 
 Set at least the following settings: 
-  * Service Provider Entity ID: Here you need to use the url that returns the metadata of the SP. In our case this is `https://keycloak.domain/auth/realms/eidrealm/broker/eidas-saml/endpoint/descriptor`. Make sure to open this url in order to see the metadata. 
+  * Service Provider Entity ID: Here you need to use the url that returns the metadata of the SP. In our case this is `https://keycloak.domain/auth/realms/eidrealm/broker/eidas-saml/endpoint/descriptor`. Make sure to open this url in order to see the metadata. Also note that you need to communicate with the people responsible for the eIDAS node and provide them 
+    with this url in order for them to enable the integration.
   * Single Sign-On Service URL: This is the eIDAS node service url. Set it according to the guide of the eIDAS node you want to connect, i.e. `https://eidas.domain/SpecificConnector/ServiceProvider`.
   * Set `Allow create` to `ON`.
   * Set `HTTP-POST Binding Response` to `ON`
@@ -78,7 +79,8 @@ Set at least the following settings:
   * You can optionally set `Service Provider Country of Origin` to the country of the SP (keycloak). If set the country code will be exported in the metadata under the SPSSO role.
   * Set `Level of Assurance` to the level of assurance you want, i.e. `http://eidas.europa.eu/LoA/low`. The level of assurance can also be set directly using the `AuthnContext ClassRefs`. This option is just a shortcut.
   * If the service is from the private sector set `Private sector service provider` to `ON` otherwise the service will be from the public sector by default.
-  * Set `Requested Attributes` to the ones you need. The format for the requested attributes is a json array of objects. See the example below:
+  * Set `Requested Attributes` to the ones you need. The format for the requested attributes is a json array of objects. See the example below for the 
+    exact format you need to follow.
  
   ```
   [{"Name":"http://eidas.europa.eu/attributes/naturalperson/PersonIdentifier", 
@@ -151,4 +153,6 @@ Switch to `Authentication` and copy the default `Browser` flow to a flow called 
 
 ### Clients
 
-Set the necessary clients in order to connect. If you want to test the setup without creating a new client you can use the `account-service`. Just point your browser at `https://keycloak.domain/auth/realms/eidrealm/account` and press `Sign In`.
+Set the necessary clients in order to connect. If you want to test the setup without creating a new client you can use the `account-service`. Just point your browser at `https://keycloak.domain/auth/realms/eidrealm/account` and press `Sign In`. If everything is correctly setup, you will see a form asking for the citizen's country and then 
+automatically redirect to the eIDAS node for the authentication.
+
