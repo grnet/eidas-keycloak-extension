@@ -7,10 +7,30 @@
 	<artifactId>keycloak-eidas-idp</artifactId>
 	<version>0.5-SNAPSHOT</version>
 
+	<description>Keycloak eIDAS Identity Provider Extension</description>
+	<url>https://github.com/grnet/eidas-keycloak-extension</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/grnet/eidas-keycloak-extension.git</url>
+		<connection>scm:git:git://github.com/grnet/eidas-keycloak-extension.git</connection>
+		<developerConnection>scm:git:git@github.com:grnet/eidas-keycloak-extension.git</developerConnection>
+	</scm>
+	<issueManagement>
+		<url>https://github.com/grnet/eidas-keycloak-extension/issues</url>
+	</issueManagement>
+
 	<properties>
 		<javaVersion>1.8</javaVersion>
 		<keycloakVersion>15.0.2</keycloakVersion>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>			
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencies>
@@ -49,6 +69,11 @@
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.8.1</version>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>3.0.0-M4</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -58,6 +83,14 @@
 				<configuration>
 					<source>${javaVersion}</source>
 					<target>${javaVersion}</target>
+					<compilerArgument>-Xlint:unchecked,deprecation</compilerArgument>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<configuration>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
 				</configuration>
 			</plugin>
 		</plugins>
