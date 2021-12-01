@@ -44,13 +44,13 @@ the extended definitions of the eIDAS technical specifications:
 
   * Identity provider "eIDAS SAML v2.0" which is an extended version of the default "SAML v2.0" IdP.
   * Mapper "Username Template Importer" which can be used to setup the ID or username for federated user lookup.
-  * Mapper "Attribute Importer" which can be used import additional attributes.
+  * Mapper "Attribute Importer" which can be used to import additional attributes.
   * Authenticator "Citizen Country Selection" which can collect the citizen country before authentication. 
 
 # Setup
 
   * Setup the keycloak realm key provider for signing requests according to the eIDAS specifications.
-    Depending on the setup of the eIDAS node that you are trying to connect it might be important that the 
+    Depending on the setup of the eIDAS node that you are trying to connect, it might be important that the 
     certificate contains the correct country code.
   * Add the "eIDAS SAML v2.0" identity provider. 
   * Setup the "eIDAS SAML v2.0" identity provider by setting the classic "SAML v2.0" options and the 
@@ -64,7 +64,7 @@ the extended definitions of the eIDAS technical specifications:
        are two letter names.
      - Identity Provider Redirector. Use the "Actions" menu to adjust the "Default Identity Provider" to "eidas-saml", in order for
        the redirection to happen automatically.
-  * Set the new flow as default in the "Brower Flow" bindings.
+  * Set the new flow as default in the "Browser Flow" bindings.
   * Adjust depending on your use case the "First Broker Login" and additional properties.
 
 You can find a very simple howto guide at [howto/README.md](howto/README.md).
@@ -74,10 +74,10 @@ You can find a very simple howto guide at [howto/README.md](howto/README.md).
 Build the project using maven
 
 ```
-mvn package
+mvn install
 ```
 
-You can find the jar under `target/`.
+You can find the jar under `target/keycloak-eidas-idp-x.x.x.jar`.
 
 # License 
 
