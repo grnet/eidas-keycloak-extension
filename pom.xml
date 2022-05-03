@@ -21,7 +21,7 @@
 		<connection>scm:git:git://github.com/grnet/eidas-keycloak-extension.git</connection>
 		<developerConnection>scm:git:git@github.com:grnet/eidas-keycloak-extension.git</developerConnection>
 	  <tag>HEAD</tag>
-  </scm>
+        </scm>
 	<issueManagement>
 		<url>https://github.com/grnet/eidas-keycloak-extension/issues</url>
 	</issueManagement>
@@ -33,11 +33,6 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.keycloak</groupId>
-			<artifactId>keycloak-core</artifactId>
-			<version>${keycloakVersion}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-saml-core</artifactId>
