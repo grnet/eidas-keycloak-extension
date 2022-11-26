@@ -34,7 +34,8 @@ Download the latest release jar from the releases page. Then deploy it in keyclo
 
 | Extension version | Keycloak version |
 |-------------------|------------------|
-| 0.5               | 15.0.2+          |
+| 0.5               | 15.0.2 - 18.0.2  |
+| 0.6               | 18.0.2           |
 
 
 # Providers 
