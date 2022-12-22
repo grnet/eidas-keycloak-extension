@@ -1,2 +1,4 @@
 gr.grnet.keycloak.idp.mappers.EidasUserAttributeMapper
 gr.grnet.keycloak.idp.mappers.EidasUserTemplateMapper
+gr.grnet.keycloak.idp.mappers.EidasUserAttributeAndCountryHashMapper
+gr.grnet.keycloak.idp.mappers.EidasPersonIdentifierAndCountryExtractor
