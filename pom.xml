@@ -27,8 +27,8 @@
 	</issueManagement>
 
 	<properties>
-		<javaVersion>1.8</javaVersion>
-		<keycloakVersion>20.0.1</keycloakVersion>
+		<javaVersion>11</javaVersion>
+		<keycloakVersion>21.0.0</keycloakVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 

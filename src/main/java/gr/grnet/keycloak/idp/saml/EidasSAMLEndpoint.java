@@ -416,7 +416,6 @@ public class EidasSAMLEndpoint {
                 }
                 session.getContext().setAuthenticationSession(authSession);
 
-                KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 if (! isSuccessfulSamlResponse(responseType)) {
                     String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                     return callback.error(statusMessage);
@@ -437,14 +436,32 @@ public class EidasSAMLEndpoint {
                 Element assertionElement;
 
                 if (assertionIsEncrypted) {
-                    // This methods writes the parsed and decrypted assertion back on the responseType parameter:
-                    assertionElement = EidasAssertionUtil.decryptAssertion(holder, responseType, keys.getPrivateKey());
+                	try { 
+	                	KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
+	                    // This methods writes the parsed and decrypted assertion back on the responseType parameter:
+	                    assertionElement = EidasAssertionUtil.decryptAssertion(responseType, keys.getPrivateKey());
+                	}
+                	catch(ProcessingException ex) { 
+                		logger.warnf(ex, "Not possible to decrypt SAML assertion. Please check realm keys of usage ENC in the realm '%s' and make sure there is a key able to decrypt the assertion encrypted by identity provider '%s'", realm.getName(), config.getAlias());
+                        throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+                	}
                 } else {
                     /* We verify the assertion using original document to handle cases where the IdP
                     includes whitespace and/or newlines inside tags. */
                     assertionElement = DocumentUtil.getElement(holder.getSamlDocument(), new QName(JBossSAMLConstants.ASSERTION.get()));
                 }
 
+                // Validate the response Issuer
+                final String responseIssuer = responseType.getIssuer() != null ? responseType.getIssuer().getValue(): null;
+                final boolean responseIssuerValidationSuccess = config.getIdpEntityId() == null ||
+                    (responseIssuer != null && responseIssuer.equals(config.getIdpEntityId()));
+                if (!responseIssuerValidationSuccess) {
+                    logger.errorf("Response Issuer validation failed: expected %s, actual %s", config.getIdpEntityId(), responseIssuer);
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
+                }
+                
                 // Validate InResponseTo attribute: must match the generated request ID
                 String expectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
                 final boolean inResponseToValidationSuccess = validateInResponseToAttribute(responseType, expectedRequestId);
@@ -467,7 +484,31 @@ public class EidasSAMLEndpoint {
                     return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
+                if (AssertionUtil.isIdEncrypted(responseType)) {
+                    try {
+                        KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
+                        AssertionUtil.decryptId(responseType, data -> Collections.singletonList(keys.getPrivateKey()));
+                    } catch (ProcessingException ex) {
+                        logger.warnf(ex, "Not possible to decrypt SAML encryptedId. Please check realm keys of usage ENC in the realm '%s' and make sure there is a key able to decrypt the encryptedId encrypted by identity provider '%s'", realm.getName(), config.getAlias());
+                        throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+                    }
+                }                
+                
+                
+                
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
+
+                // Validate the assertion Issuer
+                final String assertionIssuer = assertion.getIssuer() != null ? assertion.getIssuer().getValue(): null;
+                final boolean assertionIssuerValidationSuccess = config.getIdpEntityId() == null ||
+                    (assertionIssuer != null && assertionIssuer.equals(config.getIdpEntityId()));
+                if (!assertionIssuerValidationSuccess) {
+                    logger.errorf("Assertion Issuer validation failed: expected %s, actual %s", config.getIdpEntityId(), assertionIssuer);
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
+                }
+
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
 
@@ -557,7 +598,7 @@ public class EidasSAMLEndpoint {
          */
         private AuthenticationSessionModel samlIdpInitiatedSSO(final String clientUrlName) {
             event.event(EventType.LOGIN);
-            CacheControlUtil.noBackButtonCacheControlHeader();
+            CacheControlUtil.noBackButtonCacheControlHeader(session);
             Optional<ClientModel> oClient = EidasSAMLEndpoint.this.session.clients()
               .searchClientsByAttributes(realm, Collections.singletonMap(SamlProtocol.SAML_IDP_INITIATED_SSO_URL_NAME, clientUrlName), 0, 1)
               .findFirst();
@@ -569,7 +610,7 @@ public class EidasSAMLEndpoint {
             }
 
             LoginProtocolFactory factory = (LoginProtocolFactory) session.getKeycloakSessionFactory().getProviderFactory(LoginProtocol.class, SamlProtocol.LOGIN_PROTOCOL);
-            SamlService samlService = (SamlService) factory.createProtocolEndpoint(EidasSAMLEndpoint.this.realm, event);
+            SamlService samlService = (SamlService) factory.createProtocolEndpoint(session, event);
             ResteasyProviderFactory.getInstance().injectProperties(samlService);
             AuthenticationSessionModel authSession = samlService.getOrCreateLoginSessionForIdpInitiatedSso(session, EidasSAMLEndpoint.this.realm, oClient.get(), null);
             if (authSession == null) {
