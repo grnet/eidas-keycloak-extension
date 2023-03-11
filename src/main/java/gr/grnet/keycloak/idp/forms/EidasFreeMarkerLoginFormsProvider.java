@@ -30,7 +30,6 @@ import org.keycloak.forms.login.LoginFormsPages;
 import org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider;
 import org.keycloak.forms.login.freemarker.model.LoginBean;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.theme.FreeMarkerUtil;
 import org.keycloak.theme.Theme;
 
 public class EidasFreeMarkerLoginFormsProvider extends FreeMarkerLoginFormsProvider {
@@ -39,8 +38,8 @@ public class EidasFreeMarkerLoginFormsProvider extends FreeMarkerLoginFormsProvi
 
 	public static final String EIDAS_SAML_POST_FORM = "eidas-saml-post-form.ftl";
 
-	public EidasFreeMarkerLoginFormsProvider(KeycloakSession session, FreeMarkerUtil freeMarker) {
-		super(session, freeMarker);
+	public EidasFreeMarkerLoginFormsProvider(KeycloakSession session) {
+		super(session);
 	}
 
 	protected Response createResponse(LoginFormsPages page) {
