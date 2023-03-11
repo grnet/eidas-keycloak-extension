@@ -44,7 +44,6 @@ public class EidasFreeMarkerLoginFormsProviderFactory implements LoginFormsProvi
 
 	@Override
 	public void postInit(KeycloakSessionFactory factory) {
-
 	}
 
 	@Override

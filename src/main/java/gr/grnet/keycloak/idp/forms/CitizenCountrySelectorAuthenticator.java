@@ -24,6 +24,7 @@ import javax.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
+import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
@@ -40,9 +41,16 @@ public class CitizenCountrySelectorAuthenticator implements Authenticator {
 	private static final Logger LOG = Logger.getLogger(CitizenCountrySelectorAuthenticator.class);
 
 	/**
+	 * Template
+	 */
+	private static final String CITIZEN_COUNTRY_SELECT_FORM_TEMPLATE = "citizen-country-select-form.ftl";
+
+	/**
 	 * Property added in user's session note.
 	 */
 	public static final String CITIZEN_COUNTRY = "citizen.country";
+
+	
 
 	public CitizenCountrySelectorAuthenticator() {
 	}
@@ -63,10 +71,16 @@ public class CitizenCountrySelectorAuthenticator implements Authenticator {
 
 		LOG.debug("Countries from config = " + countries);
 
-		Response response = context.form().setAttribute("availablecountries", countries)
-				.createForm("citizen-country-select-form.ftl");
+		try { 
+			Response response = context.form().setAttribute("availablecountries", countries)
+				.createForm(CITIZEN_COUNTRY_SELECT_FORM_TEMPLATE);
 
-		context.challenge(response);
+			context.challenge(response);
+		} catch(Exception e) { 
+			context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
+				context.form().setError("citizenCountryNotSelected", e.getMessage())
+					.createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
+		}
 	}
 
 	@Override
