@@ -61,7 +61,6 @@ import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.KeyManager;
@@ -119,7 +118,7 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	@Override
 	public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-		return new EidasSAMLEndpoint(realm, this, getConfig(), callback, destinationValidator);
+		return new EidasSAMLEndpoint(session, this, getConfig(), callback, destinationValidator);
 	}
 
 	@Override

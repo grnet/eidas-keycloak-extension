@@ -59,6 +59,8 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.saml.SAMLIdentityProvider;
+import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -84,6 +86,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
+import org.keycloak.protocol.saml.SAMLDecryptionKeysLocator;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
@@ -136,29 +139,27 @@ public class EidasSAMLEndpoint {
     public static final String SAML_LOGIN_RESPONSE = "SAML_LOGIN_RESPONSE";
     public static final String SAML_ASSERTION = "SAML_ASSERTION";
     public static final String SAML_AUTHN_STATEMENT = "SAML_AUTHN_STATEMENT";
-    protected RealmModel realm;
+    protected final RealmModel realm;
     protected EventBuilder event;
-    protected EidasSAMLIdentityProviderConfig config;
-    protected IdentityProvider.AuthenticationCallback callback;
-    protected EidasSAMLIdentityProvider provider;
+    protected final EidasSAMLIdentityProviderConfig config;
+    protected final IdentityProvider.AuthenticationCallback callback;
+    protected final EidasSAMLIdentityProvider provider;
     private final DestinationValidator destinationValidator;
 
-    @Context
     private KeycloakSession session;
-
-    @Context
     private ClientConnection clientConnection;
-
-    @Context
     private HttpHeaders headers;
 
-
-    public EidasSAMLEndpoint(RealmModel realm, EidasSAMLIdentityProvider provider, EidasSAMLIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
-        this.realm = realm;
+    public EidasSAMLEndpoint(KeycloakSession session, EidasSAMLIdentityProvider provider, EidasSAMLIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator
+    		) {
+        this.realm = session.getContext().getRealm();
         this.config = config;
         this.callback = callback;
         this.provider = provider;
         this.destinationValidator = destinationValidator;
+        this.session = session;
+        this.clientConnection = session.getContext().getConnection();
+        this.headers = session.getContext().getRequestHeaders();        
     }
 
     @GET
@@ -437,9 +438,8 @@ public class EidasSAMLEndpoint {
 
                 if (assertionIsEncrypted) {
                 	try { 
-	                	KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
-	                    // This methods writes the parsed and decrypted assertion back on the responseType parameter:
-	                    assertionElement = EidasAssertionUtil.decryptAssertion(responseType, keys.getPrivateKey());
+                		// This methods writes the parsed and decrypted assertion back on the responseType parameter:
+                		assertionElement = AssertionUtil.decryptAssertion(responseType, new SAMLDecryptionKeysLocator(session, realm, config.getEncryptionAlgorithm()));
                 	}
                 	catch(ProcessingException ex) { 
                 		logger.warnf(ex, "Not possible to decrypt SAML assertion. Please check realm keys of usage ENC in the realm '%s' and make sure there is a key able to decrypt the assertion encrypted by identity provider '%s'", realm.getName(), config.getAlias());
