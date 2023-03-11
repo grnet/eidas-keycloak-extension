@@ -21,11 +21,14 @@ package gr.grnet.keycloak.idp;
 import java.io.StringWriter;
 import java.net.URI;
 import java.security.KeyPair;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -45,7 +48,6 @@ import org.keycloak.broker.saml.SAMLIdentityProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.Algorithm;
-import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyUse;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
@@ -54,15 +56,19 @@ import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
+import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
+import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
+import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
+import org.keycloak.protocol.saml.SAMLEncryptionAlgorithms;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
@@ -218,7 +224,6 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
 	@Override
 	public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
-		ResponseType responseType = (ResponseType) context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
 		AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
 		SubjectType subject = assertion.getSubject();
 		SubjectType.STSubType subType = subject.getSubType();
@@ -255,52 +260,95 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			boolean wantAssertionsEncrypted = getConfig().isWantAssertionsEncrypted();
 			String entityId = getEntityId(uriInfo, realm);
 			String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
-			int attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex() != null
-					? getConfig().getAttributeConsumingServiceIndex()
-					: 1;
-			String attributeConsumingServiceName = getConfig().getAttributeConsumingServiceName();
+			
+			
+            // We export all keys for algorithm RS256, both active and passive so IDP is able to verify signature even
+            //  if a key rotation happens in the meantime
+            List<KeyDescriptorType> signingKeys = 
+            		session.keys().getKeysStream(realm, KeyUse.SIG, Algorithm.RS256)
+                    .filter(key -> key.getCertificate() != null)
+                    .sorted(SamlService::compareKeys)
+                    .map(key -> {
+                        try {
+                            return SPMetadataDescriptor.buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate()));
+                        } catch (ParserConfigurationException e) {
+                            logger.warn("Failed to export SAML SP Metadata!", e);
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .map(key -> SPMetadataDescriptor.buildKeyDescriptorType(key, KeyTypes.SIGNING, null))
+                    .collect(Collectors.toList());			
 
-			List<Element> signingKeys = new LinkedList<>();
-			List<Element> encryptionKeys = new LinkedList<>();
+            // We export only active ENC keys so IDP uses different key as soon as possible if a key rotation happens
+            String encAlg = getConfig().getEncryptionAlgorithm();
+            List<KeyDescriptorType> encryptionKeys = session.keys().getKeysStream(realm)
+                    .filter(key -> key.getStatus().isActive() && KeyUse.ENC.equals(key.getUse())
+                            && (encAlg == null || Objects.equals(encAlg, key.getAlgorithmOrDefault()))
+                            && SAMLEncryptionAlgorithms.forKeycloakIdentifier(key.getAlgorithm()) != null
+                            && key.getCertificate() != null)
+                    .sorted(SamlService::compareKeys)
+                    .map(key -> {
+                        Element keyInfo;
+                        try {
+                            keyInfo = SPMetadataDescriptor.buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate()));
+                        } catch (ParserConfigurationException e) {
+                            logger.warn("Failed to export SAML SP Metadata!", e);
+                            throw new RuntimeException(e);
+                        }
 
-			session.keys().getKeysStream(realm, KeyUse.SIG, Algorithm.RS256).filter(Objects::nonNull)
-					.filter(key -> key.getCertificate() != null).sorted(SamlService::compareKeys).forEach(key -> {
-						try {
-							Element element = SPMetadataDescriptor.buildKeyInfoElement(key.getKid(),
-									PemUtils.encodeCertificate(key.getCertificate()));
-							signingKeys.add(element);
-
-							if (key.getStatus() == KeyStatus.ACTIVE) {
-								encryptionKeys.add(element);
-							}
-						} catch (ParserConfigurationException e) {
-							logger.warn("Failed to export SAML SP Metadata!", e);
-							throw new RuntimeException(e);
-						}
-					});
-
+                        return SPMetadataDescriptor.buildKeyDescriptorType(keyInfo, KeyTypes.ENCRYPTION, SAMLEncryptionAlgorithms.forKeycloakIdentifier(key.getAlgorithm()).getXmlEncIdentifier());
+                    })
+                    .collect(Collectors.toList());
+			
 			// Prepare the metadata descriptor model
 			StringWriter sw = new StringWriter();
 			XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
 			SAMLMetadataWriter metadataWriter = new EidasSAMLMetadataWriter(writer);
 
-			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(authnBinding, authnBinding,
+			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPDescriptor(authnBinding, authnBinding,
 					endpoint, endpoint, wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
 					entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
-			// Create the AttributeConsumingService
-			AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(
-					attributeConsumingServiceIndex);
-			attributeConsumingService.setIsDefault(true);
+			// Create the AttributeConsumingService if at least one attribute importer mapper exists
+            List<Entry<IdentityProviderMapperModel, SamlMetadataDescriptorUpdater>> metadataAttrProviders = new ArrayList<>();
+            realm.getIdentityProviderMappersByAliasStream(getConfig().getAlias())
+                .forEach(mapper -> {
+                    IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
+                    if (target instanceof SamlMetadataDescriptorUpdater)
+                        metadataAttrProviders.add(new java.util.AbstractMap.SimpleEntry<>(mapper, (SamlMetadataDescriptorUpdater)target));
+                });		
+            
+            
+            if (!metadataAttrProviders.isEmpty()) {
+                int attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex() != null ? getConfig().getAttributeConsumingServiceIndex() : 1;
+                String attributeConsumingServiceName = getConfig().getAttributeConsumingServiceName();
+                //default value for attributeConsumingServiceName
+                if (attributeConsumingServiceName == null)
+                    attributeConsumingServiceName = realm.getDisplayName() != null ? realm.getDisplayName() : realm.getName() ;
+                AttributeConsumingServiceType attributeConsumingService = new AttributeConsumingServiceType(attributeConsumingServiceIndex);
+                attributeConsumingService.setIsDefault(true);
 
-			if (attributeConsumingServiceName != null && attributeConsumingServiceName.length() > 0) {
-				String currentLocale = realm.getDefaultLocale() == null ? "en" : realm.getDefaultLocale();
-				LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
-				attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
-				attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
-			}
+                String currentLocale = realm.getDefaultLocale() == null ? "en" : realm.getDefaultLocale();
+                LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(currentLocale);
+                attributeConsumingServiceNameElement.setValue(attributeConsumingServiceName);
+                attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
 
-			// If node country is defined, look for the SP description and add it
+                // Look for the SP descriptor and add the attribute consuming service
+                for (EntityDescriptorType.EDTChoiceType choiceType : entityDescriptor.getChoiceType()) {
+                    List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
+                    for (EntityDescriptorType.EDTDescriptorChoiceType descriptor : descriptors) {
+                        descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
+                    }
+                }
+
+                // Add the attribute mappers
+                metadataAttrProviders.forEach(mapper -> {
+                    SamlMetadataDescriptorUpdater metadataAttrProvider = mapper.getValue();
+                    metadataAttrProvider.updateMetadata(mapper.getKey(), entityDescriptor);
+                });
+            }
+            
+ 			// If node country is defined, look for the SP description and add it
 			String nodeCountry = getConfig().getServiceProviderCountryOfOrigin();
 			if (!StringUtil.isNullOrEmpty(nodeCountry)) {
 				for (EntityDescriptorType.EDTChoiceType choiceType : entityDescriptor.getChoiceType()) {
@@ -316,56 +364,34 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 					}
 				}
 			}
+           
+            // Write the metadata and export it to a string
+            metadataWriter.writeEntityDescriptor(entityDescriptor);
 
-			// Look for the SP descriptor and add the attribute consuming service
-			for (EntityDescriptorType.EDTChoiceType choiceType : entityDescriptor.getChoiceType()) {
-				List<EntityDescriptorType.EDTDescriptorChoiceType> descriptors = choiceType.getDescriptors();
+            String descriptor = sw.toString();
 
-				if (descriptors != null) {
-					for (EntityDescriptorType.EDTDescriptorChoiceType descriptor : descriptors) {
-						if (descriptor.getSpDescriptor() != null) {
-							descriptor.getSpDescriptor().addAttributeConsumerService(attributeConsumingService);
-						}
-					}
-				}
-			}
+            // Metadata signing
+            if (getConfig().isSignSpMetadata())
+            {
+                KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
+                String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
+                KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
 
-			// Add the attribute mappers
-			realm.getIdentityProviderMappersByAliasStream(getConfig().getAlias()).forEach(mapper -> {
-				IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory()
-						.getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
-				if (target instanceof SamlMetadataDescriptorUpdater) {
-					SamlMetadataDescriptorUpdater metadataAttrProvider = (SamlMetadataDescriptorUpdater) target;
-					metadataAttrProvider.updateMetadata(mapper, entityDescriptor);
-				}
-			});
+                Document metadataDocument = DocumentUtil.getDocument(descriptor);
+                SAML2Signature signatureHelper = new SAML2Signature();
+                signatureHelper.setSignatureMethod(getSignatureAlgorithm().getXmlSignatureMethod());
+                signatureHelper.setDigestMethod(getSignatureAlgorithm().getXmlSignatureDigestMethod());
 
-			// Write the metadata and export it to a string
-			metadataWriter.writeEntityDescriptor(entityDescriptor);
+                Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
+                signatureHelper.setNextSibling(nextSibling);
 
-			String descriptor = sw.toString();
+                signatureHelper.signSAMLDocument(metadataDocument, keyName, keyPair, CanonicalizationMethod.EXCLUSIVE);
 
-			// Metadata signing
-			if (getConfig().isSignSpMetadata()) {
-				KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
-				String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(),
-						activeKey.getCertificate());
-				KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
+                descriptor = DocumentUtil.getDocumentAsString(metadataDocument);
+            }
 
-				Document metadataDocument = DocumentUtil.getDocument(descriptor);
-				SAML2Signature signatureHelper = new SAML2Signature();
-				signatureHelper.setSignatureMethod(getSignatureAlgorithm().getXmlSignatureMethod());
-				signatureHelper.setDigestMethod(getSignatureAlgorithm().getXmlSignatureDigestMethod());
-
-				Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
-				signatureHelper.setNextSibling(nextSibling);
-
-				signatureHelper.signSAMLDocument(metadataDocument, keyName, keyPair, CanonicalizationMethod.EXCLUSIVE);
-
-				descriptor = DocumentUtil.getDocumentAsString(metadataDocument);
-			}
-
-			return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
+            return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
+			
 		} catch (Exception e) {
 			logger.warn("Failed to export SAML SP Metadata!", e);
 			throw new RuntimeException(e);
