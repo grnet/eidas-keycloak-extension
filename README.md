@@ -35,7 +35,7 @@ Download the latest release jar from the releases page. Then deploy it in keyclo
 | Extension version | Keycloak version |
 |-------------------|------------------|
 | 0.5               | 15.0.2 - 18.0.2  |
-| 0.6               | 18.0.2           |
+| 0.6               | 18.0.2, 19.0.2 (partial admin UI)|
 
 Configuring this extension is not yet compatible with the new AdminUI (keycloak.v2) from Keycloak. You might be able to use it 
 by enabling the old Admin UI. See [Keycloak 19.0.0 release](https://www.keycloak.org/2022/07/keycloak-1900-released.html#_new_admin_console_is_now_the_default_console).
