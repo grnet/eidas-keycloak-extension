@@ -43,7 +43,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -59,8 +58,6 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
-import org.keycloak.broker.saml.SAMLIdentityProvider;
-import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -121,7 +118,6 @@ import org.w3c.dom.NodeList;
 
 import gr.grnet.keycloak.idp.EidasSAMLIdentityProvider;
 import gr.grnet.keycloak.idp.EidasSAMLIdentityProviderConfig;
-import gr.grnet.keycloak.idp.parsers.EidasAssertionUtil;
 import gr.grnet.keycloak.idp.parsers.EidasSAMLRequestParser;
 
 /**
@@ -287,7 +283,7 @@ public class EidasSAMLEndpoint {
                 event.error(Errors.INVALID_REQUEST);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUEST);
             }
-            if (! destinationValidator.validate(getExpectedDestination(config.getAlias(), null), requestAbstractType.getDestination())) {
+            if (!destinationValidator.validate(getExpectedDestination(config.getAlias(), null), requestAbstractType.getDestination())) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, Errors.INVALID_DESTINATION);
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -417,7 +413,7 @@ public class EidasSAMLEndpoint {
                 }
                 session.getContext().setAuthenticationSession(authSession);
 
-                if (! isSuccessfulSamlResponse(responseType)) {
+                if (!isSuccessfulSamlResponse(responseType)) {
                     String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                     return callback.error(statusMessage);
                 }
@@ -494,8 +490,6 @@ public class EidasSAMLEndpoint {
                     }
                 }                
                 
-                
-                
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
 
                 // Validate the assertion Issuer
@@ -548,7 +542,7 @@ public class EidasSAMLEndpoint {
                 } catch (IllegalArgumentException ex) {
                     // warning has been already emitted in DeploymentBuilder
                 }
-                if (! cvb.build().isValid()) {
+                if (!cvb.build().isValid()) {
                     logger.error("Assertion expired.");
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);

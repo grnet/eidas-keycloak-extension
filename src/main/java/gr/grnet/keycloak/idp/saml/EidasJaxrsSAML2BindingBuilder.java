@@ -26,12 +26,13 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.w3c.dom.Document;
+
+import gr.grnet.keycloak.idp.forms.EidasLoginFormsProvider;
 
 public class EidasJaxrsSAML2BindingBuilder extends EidasBaseSAML2BindingBuilder<EidasJaxrsSAML2BindingBuilder> {
 
@@ -77,7 +78,7 @@ public class EidasJaxrsSAML2BindingBuilder extends EidasBaseSAML2BindingBuilder<
 				formData.add(COUNTRY, country);
 			}
 
-			return session.getProvider(LoginFormsProvider.class).setFormData(formData).createSamlPostForm();
+			return session.getProvider(EidasLoginFormsProvider.class).setFormData(formData).createEidasSamlPostForm();
 		}
 	}
 

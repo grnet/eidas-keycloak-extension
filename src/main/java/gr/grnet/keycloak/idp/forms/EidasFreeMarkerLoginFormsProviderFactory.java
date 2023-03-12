@@ -19,23 +19,21 @@
 package gr.grnet.keycloak.idp.forms;
 
 import org.keycloak.Config;
-import org.keycloak.forms.login.LoginFormsProvider;
-import org.keycloak.forms.login.LoginFormsProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
 /**
  * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
  */
-public class EidasFreeMarkerLoginFormsProviderFactory implements LoginFormsProviderFactory {
+public class EidasFreeMarkerLoginFormsProviderFactory implements EidasLoginFormsProviderFactory {
 
 	@Override
-	public LoginFormsProvider create(KeycloakSession session) {
+	public EidasLoginFormsProvider create(KeycloakSession session) {
 		return new EidasFreeMarkerLoginFormsProvider(session);
 	}
 
 	@Override
-	public void init(Config.Scope config) {
+	public void init(Config.Scope config) {	
 	}
 
 	@Override
@@ -48,7 +46,7 @@ public class EidasFreeMarkerLoginFormsProviderFactory implements LoginFormsProvi
 
 	@Override
 	public String getId() {
-		return "freemarker";
+		return "eidas-freemarker";
 	}
 		
 }
