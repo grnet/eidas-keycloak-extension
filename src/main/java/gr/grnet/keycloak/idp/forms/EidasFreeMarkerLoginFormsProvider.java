@@ -37,7 +37,6 @@ import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.forms.login.LoginFormsPages;
 import org.keycloak.forms.login.freemarker.AuthenticatorConfiguredMethod;
-import org.keycloak.forms.login.freemarker.FreeMarkerLoginFormsProvider;
 import org.keycloak.forms.login.freemarker.LoginFormsUtil;
 import org.keycloak.forms.login.freemarker.model.AuthenticationContextBean;
 import org.keycloak.forms.login.freemarker.model.ClientBean;
