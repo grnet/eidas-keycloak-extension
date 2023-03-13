@@ -75,6 +75,7 @@ public class EidasAssertionUtil {
         responseType.replaceAssertion(oldID, new ResponseType.RTChoiceType(assertion));
 
         return decryptedDocumentElement;
+       
     }
 
 }

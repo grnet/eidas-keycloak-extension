@@ -83,7 +83,6 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
-import org.keycloak.protocol.saml.SAMLDecryptionKeysLocator;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
@@ -118,6 +117,7 @@ import org.w3c.dom.NodeList;
 
 import gr.grnet.keycloak.idp.EidasSAMLIdentityProvider;
 import gr.grnet.keycloak.idp.EidasSAMLIdentityProviderConfig;
+import gr.grnet.keycloak.idp.parsers.EidasAssertionUtil;
 import gr.grnet.keycloak.idp.parsers.EidasSAMLRequestParser;
 
 /**
@@ -360,7 +360,7 @@ public class EidasSAMLEndpoint {
                 binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
                         .signatureAlgorithm(provider.getSignatureAlgorithm())
                         .signDocument();
-                if (! postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
+                if (!postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
                     builder.addExtension(new KeycloakKeySamlExtensionGenerator(keyName));
                 }
             }
@@ -435,7 +435,7 @@ public class EidasSAMLEndpoint {
                 if (assertionIsEncrypted) {
                 	try { 
                 		// This methods writes the parsed and decrypted assertion back on the responseType parameter:
-                		assertionElement = AssertionUtil.decryptAssertion(responseType, new SAMLDecryptionKeysLocator(session, realm, config.getEncryptionAlgorithm()));
+                		assertionElement = EidasAssertionUtil.decryptAssertion(responseType, new EidasSAMLDecryptionKeysLocator(session, realm, config.getEncryptionAlgorithm()));
                 	}
                 	catch(ProcessingException ex) { 
                 		logger.warnf(ex, "Not possible to decrypt SAML assertion. Please check realm keys of usage ENC in the realm '%s' and make sure there is a key able to decrypt the assertion encrypted by identity provider '%s'", realm.getName(), config.getAlias());
