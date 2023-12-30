@@ -30,10 +30,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamWriter;
@@ -98,6 +94,10 @@ import gr.grnet.keycloak.idp.saml.EidasNodeCountryExtensionGenerator;
 import gr.grnet.keycloak.idp.saml.EidasSAMLDataMarshaller;
 import gr.grnet.keycloak.idp.saml.EidasSAMLEndpoint;
 import gr.grnet.keycloak.idp.saml.EidasSAMLMetadataWriter;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 
 public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 
@@ -295,7 +295,7 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
                             throw new RuntimeException(e);
                         }
 
-                        return SPMetadataDescriptor.buildKeyDescriptorType(keyInfo, KeyTypes.ENCRYPTION, SAMLEncryptionAlgorithms.forKeycloakIdentifier(key.getAlgorithm()).getXmlEncIdentifier());
+                        return SPMetadataDescriptor.buildKeyDescriptorType(keyInfo, KeyTypes.ENCRYPTION, SAMLEncryptionAlgorithms.forKeycloakIdentifier(key.getAlgorithm()).getXmlEncIdentifiers());
                     })
                     .collect(Collectors.toList());
 			
