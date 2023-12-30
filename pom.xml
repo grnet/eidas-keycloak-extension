@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gr.grnet</groupId>
 	<artifactId>keycloak-eidas-idp</artifactId>
-	<version>0.10-SNAPSHOT</version>
+	<version>0.10</version>
 
 	<description>Keycloak eIDAS Identity Provider Extension</description>
 	<url>https://github.com/grnet/eidas-keycloak-extension</url>
@@ -28,7 +28,7 @@
 
 	<properties>
 		<javaVersion>17</javaVersion>
-		<keycloakVersion>22.0.3</keycloakVersion>
+		<keycloakVersion>23.0.2</keycloakVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
