@@ -21,11 +21,6 @@ package gr.grnet.keycloak.idp.saml;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
@@ -33,6 +28,10 @@ import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.w3c.dom.Document;
 
 import gr.grnet.keycloak.idp.forms.EidasLoginFormsProvider;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
 public class EidasJaxrsSAML2BindingBuilder extends EidasBaseSAML2BindingBuilder<EidasJaxrsSAML2BindingBuilder> {
 

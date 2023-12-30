@@ -1,9 +1,9 @@
 package gr.grnet.keycloak.idp.forms;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
 import org.keycloak.provider.Provider;
+
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
 public interface EidasLoginFormsProvider extends Provider {
 	
