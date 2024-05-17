@@ -157,6 +157,7 @@ public class EidasSAMLDecryptionKeysLocator implements XMLEncryptionUtil.Decrypt
         // Map keys to PrivateKey
         return keysSoFar.stream()
                 .map(KeyWrapper::getPrivateKey)
+                .filter(Objects::nonNull)
                 .map(Key::getEncoded)
                 .map(encoded -> {
                     try {

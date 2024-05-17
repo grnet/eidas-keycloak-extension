@@ -44,7 +44,7 @@ import org.keycloak.saml.processing.core.parsers.util.SAMLParserUtil;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
 
 /**
- *
+ * This is a specific parser which also knows about some Eidas specific attributes.  
  */
 public class EidasSAMLAttributeValueParser implements StaxParser {
 

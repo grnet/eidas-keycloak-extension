@@ -21,6 +21,7 @@ package gr.grnet.keycloak.idp;
 import java.io.StringWriter;
 import java.net.URI;
 import java.security.KeyPair;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -35,20 +36,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.keycloak.broker.provider.AuthenticationRequest;
-import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProviderDataMarshaller;
 import org.keycloak.broker.provider.IdentityProviderMapper;
-import org.keycloak.broker.saml.SAMLEndpoint;
 import org.keycloak.broker.saml.SAMLIdentityProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyUse;
-import org.keycloak.dom.saml.v2.assertion.AssertionType;
-import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
-import org.keycloak.dom.saml.v2.assertion.NameIDType;
-import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
@@ -62,6 +57,7 @@ import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.saml.SAMLEncryptionAlgorithms;
 import org.keycloak.protocol.saml.SamlProtocol;
@@ -81,7 +77,6 @@ import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
-import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -162,12 +157,21 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			if (getConfig().getConfig().get(SAMLIdentityProviderConfig.ALLOW_CREATE) == null
 					|| getConfig().isAllowCreate())
 				allowCreate = Boolean.TRUE;
+            LoginProtocol protocol = session.getProvider(LoginProtocol.class, request.getAuthenticationSession().getProtocol());
+            Boolean forceAuthn = getConfig().isForceAuthn();
+            if (protocol.requireReauthentication(null, request.getAuthenticationSession()))
+                forceAuthn = Boolean.TRUE;
+
 			SAML2AuthnRequestBuilder authnRequestBuilder = new SAML2AuthnRequestBuilder()
-					.assertionConsumerUrl(assertionConsumerServiceUrl).destination(destinationUrl).issuer(issuerURL)
-					.forceAuthn(getConfig().isForceAuthn()).protocolBinding(protocolBinding)
+					.assertionConsumerUrl(assertionConsumerServiceUrl)
+					.destination(destinationUrl)
+					.issuer(issuerURL)
+					.forceAuthn(forceAuthn)
+					.protocolBinding(protocolBinding)
 					.nameIdPolicy(SAML2NameIDPolicyBuilder.format(nameIDPolicyFormat).setAllowCreate(allowCreate))
 					.attributeConsumingServiceIndex(attributeConsumingServiceIndex)
-					.requestedAuthnContext(requestedAuthnContext).subject(loginHint);
+					.requestedAuthnContext(requestedAuthnContext)
+					.subject(loginHint);
 
 			// eIDAS specific action, add the extensions
 			authnRequestBuilder.addExtension(new EidasAuthnExtensionGenerator(getConfig()));
@@ -222,22 +226,6 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 	}
 
 	@Override
-	public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context) {
-		AssertionType assertion = (AssertionType) context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
-		SubjectType subject = assertion.getSubject();
-		SubjectType.STSubType subType = subject.getSubType();
-		if (subType != null) {
-			NameIDType subjectNameID = (NameIDType) subType.getBaseID();
-			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID,
-					subjectNameID.serializeAsString());
-		}
-		AuthnStatementType authn = (AuthnStatementType) context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
-		if (authn != null && authn.getSessionIndex() != null) {
-			authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
-		}
-	}
-
-	@Override
 	public IdentityProviderDataMarshaller getMarshaller() {
 		return new EidasSAMLDataMarshaller();
 	}
@@ -245,14 +233,24 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 	@Override
 	public Response export(UriInfo uriInfo, RealmModel realm, String format) {
 		try {
-			URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
+			URI authnResponseBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
 
 			if (getConfig().isPostBindingAuthnRequest()) {
-				authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+				authnResponseBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
 			}
 
-			URI endpoint = uriInfo.getBaseUriBuilder().path("realms").path(realm.getName()).path("broker")
-					.path(getConfig().getAlias()).path("endpoint").build();
+			URI logoutBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
+
+			if (getConfig().isPostBindingLogout()) {
+                logoutBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
+            }
+
+			URI endpoint = uriInfo.getBaseUriBuilder()
+					.path("realms").path(realm.getName())
+					.path("broker")
+					.path(getConfig().getAlias())
+					.path("endpoint")
+					.build();
 
 			boolean wantAuthnRequestsSigned = getConfig().isWantAuthnRequestsSigned();
 			boolean wantAssertionsSigned = getConfig().isWantAssertionsSigned();
@@ -304,9 +302,10 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
 			SAMLMetadataWriter metadataWriter = new EidasSAMLMetadataWriter(writer);
 
-			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPDescriptor(authnBinding, authnBinding,
-					endpoint, endpoint, wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
-					entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
+			EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPDescriptor(
+                authnResponseBinding, logoutBinding, endpoint, endpoint,
+                wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
+                entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
 			// Create the AttributeConsumingService if at least one attribute importer mapper exists
             List<Entry<IdentityProviderMapperModel, SamlMetadataDescriptorUpdater>> metadataAttrProviders = new ArrayList<>();
@@ -347,6 +346,7 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
                 });
             }
             
+			// Eidas Extra Stuff
  			// If node country is defined, look for the SP description and add it
 			String nodeCountry = getConfig().getServiceProviderCountryOfOrigin();
 			if (!StringUtil.isNullOrEmpty(nodeCountry)) {
@@ -373,13 +373,15 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
             if (getConfig().isSignSpMetadata())
             {
                 KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
-                String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
+				X509Certificate certificate = activeKey.getCertificate();
+                String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), certificate);
                 KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
 
                 Document metadataDocument = DocumentUtil.getDocument(descriptor);
                 SAML2Signature signatureHelper = new SAML2Signature();
                 signatureHelper.setSignatureMethod(getSignatureAlgorithm().getXmlSignatureMethod());
                 signatureHelper.setDigestMethod(getSignatureAlgorithm().getXmlSignatureDigestMethod());
+				signatureHelper.setX509Certificate(certificate);
 
                 Node nextSibling = metadataDocument.getDocumentElement().getFirstChild();
                 signatureHelper.setNextSibling(nextSibling);
