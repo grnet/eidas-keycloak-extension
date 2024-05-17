@@ -28,7 +28,7 @@
 
 	<properties>
 		<javaVersion>17</javaVersion>
-		<keycloakVersion>23.0.2</keycloakVersion>
+		<keycloakVersion>24.0.3</keycloakVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
