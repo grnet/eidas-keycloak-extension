@@ -69,7 +69,7 @@ public class EidasAssertionUtil {
         EidasSAMLParser parser = EidasSAMLParser.getInstance();
 
         JAXPValidationUtil.checkSchemaValidation(decryptedDocumentElement);
-        AssertionType assertion = (AssertionType) parser.parse(parser.createEventReader(DocumentUtil
+        AssertionType assertion = (AssertionType) parser.parse(EidasSAMLParser.createEventReader(DocumentUtil
                 .getNodeAsStream(decryptedDocumentElement)));
 
         responseType.replaceAssertion(oldID, new ResponseType.RTChoiceType(assertion));
