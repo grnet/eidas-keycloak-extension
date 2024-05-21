@@ -40,11 +40,11 @@ Download the latest release jar from the releases page. Then deploy it in keyclo
 | 0.8               | 21.0.1 (partial admin UI) |
 | 0.9               | 22.0.3 (partial admin UI) |
 | 0.10              | 23.0.2 (partial admin UI) |
+| 0.11              | 24.0.4 |
 
-Configuring this extension is not yet compatible with the new AdminUI (keycloak.v2) from Keycloak. You might be able to use it 
-by enabling the old Admin UI. See [Keycloak 19.0.0 release](https://www.keycloak.org/2022/07/keycloak-1900-released.html#_new_admin_console_is_now_the_default_console).
+Depending on the version of keycloak (between 18 and 23) the admin UI might not show the extra attributes and you might need to configure the 
+extension by editing the configuration inside the DB. 
 Another possibility is to import your realm from json and thus be able to configure the extension. See this [example](howto/example.config.json) for an example.
-
 
 # Providers 
 

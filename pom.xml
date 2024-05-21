@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gr.grnet</groupId>
 	<artifactId>keycloak-eidas-idp</artifactId>
-	<version>0.11</version>
+	<version>0.11-SNAPSHOT</version>
 
 	<description>Keycloak eIDAS Identity Provider Extension</description>
 	<url>https://github.com/grnet/eidas-keycloak-extension</url>
