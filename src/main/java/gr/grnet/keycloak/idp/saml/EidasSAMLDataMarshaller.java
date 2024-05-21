@@ -87,6 +87,7 @@ public class EidasSAMLDataMarshaller extends DefaultDataMarshaller {
                 if (clazz.equals(ResponseType.class) || clazz.equals(AssertionType.class) || clazz.equals(AuthnStatementType.class) || clazz.equals(ArtifactResponseType.class)) {
                     byte[] bytes = xmlString.getBytes(GeneralConstants.SAML_CHARSET);
                     InputStream is = new ByteArrayInputStream(bytes);
+                    // Eidas Specific Parser
                     Object respType = EidasSAMLParser.getInstance().parse(is);
                     return clazz.cast(respType);
                 } else {

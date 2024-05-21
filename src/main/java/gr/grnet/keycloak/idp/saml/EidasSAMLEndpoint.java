@@ -40,7 +40,7 @@ import javax.xml.namespace.QName;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.keycloak.crypto.KeyUse;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
@@ -62,13 +62,20 @@ import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
+import org.keycloak.keys.PublicKeyLoader;
+import org.keycloak.keys.PublicKeyStorageProvider;
+import org.keycloak.keys.PublicKeyStorageUtils;
 import org.keycloak.models.ClientModel;
+import org.keycloak.models.Constants;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
+import org.keycloak.protocol.saml.SAMLDecryptionKeysLocator;
+import org.keycloak.protocol.saml.SamlMetadataKeyLocator;
+import org.keycloak.protocol.saml.SamlMetadataPublicKeyLoader;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
@@ -88,6 +95,7 @@ import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
 import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.saml.processing.core.saml.v2.util.AssertionUtil;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
+import org.keycloak.saml.processing.core.util.XMLEncryptionUtil;
 import org.keycloak.saml.processing.core.util.XMLSignatureUtil;
 import org.keycloak.saml.processing.web.util.PostBindingUtil;
 import org.keycloak.saml.validators.ConditionsValidator;
@@ -98,6 +106,7 @@ import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.utils.StringUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -246,8 +255,15 @@ public class EidasSAMLEndpoint {
         }
 
         protected KeyLocator getIDPKeyLocator() {
-            List<Key> keys = new LinkedList<>();
+            if (StringUtil.isNotBlank(config.getMetadataDescriptorUrl()) && config.isUseMetadataDescriptorUrl()) {
+                String modelKey = PublicKeyStorageUtils.getIdpModelCacheKey(realm.getId(), config.getInternalId());
+                PublicKeyLoader keyLoader = new SamlMetadataPublicKeyLoader(session, config.getMetadataDescriptorUrl());
+                PublicKeyStorageProvider keyStorage = session.getProvider(PublicKeyStorageProvider.class);
+                return new SamlMetadataKeyLocator(modelKey, keyLoader, KeyUse.SIG, keyStorage);
+            }
 
+
+            List<Key> keys = new LinkedList<>();
             for (String signingCertificate : config.getSigningCertificates()) {
                 X509Certificate cert = null;
                 try {
@@ -406,15 +422,20 @@ public class EidasSAMLEndpoint {
 
             try {
                 AuthenticationSessionModel authSession;
-                if (clientId != null && ! clientId.trim().isEmpty()) {
+                if (StringUtil.isNotBlank(clientId)) {
                     authSession = samlIdpInitiatedSSO(clientId);
-                } else {
+                } else if (StringUtil.isNotBlank(relayState)) {
                     authSession = callback.getAndVerifyAuthenticationSession(relayState);
+                } else {
+                    logger.error("SAML RelayState parameter was null when it should be returned by the IDP");
+                    event.event(EventType.LOGIN);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
                 }
                 session.getContext().setAuthenticationSession(authSession);
 
-                if (!isSuccessfulSamlResponse(responseType)) {
-                    String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
+                if (! isSuccessfulSamlResponse(responseType)) {
+                    String statusMessage = responseType.getStatus() == null || responseType.getStatus().getStatusMessage() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                     return callback.error(statusMessage);
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
@@ -434,8 +455,8 @@ public class EidasSAMLEndpoint {
 
                 if (assertionIsEncrypted) {
                 	try { 
-                		// This methods writes the parsed and decrypted assertion back on the responseType parameter:
-                		assertionElement = EidasAssertionUtil.decryptAssertion(responseType, new EidasSAMLDecryptionKeysLocator(session, realm, config.getEncryptionAlgorithm()));
+                        XMLEncryptionUtil.DecryptionKeyLocator decryptionKeyLocator = new EidasSAMLDecryptionKeysLocator(session, realm, config.getEncryptionAlgorithm());
+                        assertionElement = EidasAssertionUtil.decryptAssertion(responseType, decryptionKeyLocator);
                 	}
                 	catch(ProcessingException ex) { 
                 		logger.warnf(ex, "Not possible to decrypt SAML assertion. Please check realm keys of usage ENC in the realm '%s' and make sure there is a key able to decrypt the assertion encrypted by identity provider '%s'", realm.getName(), config.getAlias());
@@ -482,8 +503,8 @@ public class EidasSAMLEndpoint {
 
                 if (AssertionUtil.isIdEncrypted(responseType)) {
                     try {
-                        KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
-                        AssertionUtil.decryptId(responseType, data -> Collections.singletonList(keys.getPrivateKey()));
+                        XMLEncryptionUtil.DecryptionKeyLocator decryptionKeyLocator = new EidasSAMLDecryptionKeysLocator(session, realm, config.getEncryptionAlgorithm());
+                        AssertionUtil.decryptId(responseType, decryptionKeyLocator);
                     } catch (ProcessingException ex) {
                         logger.warnf(ex, "Not possible to decrypt SAML encryptedId. Please check realm keys of usage ENC in the realm '%s' and make sure there is a key able to decrypt the encryptedId encrypted by identity provider '%s'", realm.getName(), config.getAlias());
                         throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
@@ -605,7 +626,6 @@ public class EidasSAMLEndpoint {
 
             LoginProtocolFactory factory = (LoginProtocolFactory) session.getKeycloakSessionFactory().getProviderFactory(LoginProtocol.class, SamlProtocol.LOGIN_PROTOCOL);
             SamlService samlService = (SamlService) factory.createProtocolEndpoint(session, event);
-            ResteasyProviderFactory.getInstance().injectProperties(samlService);
             AuthenticationSessionModel authSession = samlService.getOrCreateLoginSessionForIdpInitiatedSso(session, EidasSAMLEndpoint.this.realm, oClient.get(), null);
             if (authSession == null) {
                 event.error(Errors.INVALID_REDIRECT_URI);
