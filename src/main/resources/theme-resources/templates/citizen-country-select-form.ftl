@@ -1,9 +1,9 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=true; section>
     <#if section = "title">
-        ${msg("eidas_select_your_country")}
+        ${msg("eidas_select_your_country_title")}
     <#elseif section = "header">
-        ${msg("eidas_select_your_country")}
+        ${msg("eidas_select_your_country_title")}
     <#elseif section = "form">
         <style>
             .form-grid { 
