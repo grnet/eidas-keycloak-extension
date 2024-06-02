@@ -1,9 +1,9 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=true; section>
     <#if section = "title">
-        Select your country
+        ${msg("eidas_select_your_country")}
     <#elseif section = "header">
-        Select your country
+        ${msg("eidas_select_your_country")}
     <#elseif section = "form">
         <style>
             .form-grid { 
@@ -34,7 +34,7 @@
                 margin-bottom: 0;
             }
         </style>
-        <div class="pf-l-stack__item select-auth-box-desc" style="margin-bottom: 1.5rem;">In order to continue, please select your nationality</div>
+        <div class="pf-l-stack__item select-auth-box-desc" style="margin-bottom: 1.5rem;">${msg("eidas_country_select_text")}</div>
         <form action="${url.loginAction}" class="${properties.kcFormClass!}" id="kc-citizen-form" method="post">
             <div class="form-grid">
 	                <#list availablecountries as country>
