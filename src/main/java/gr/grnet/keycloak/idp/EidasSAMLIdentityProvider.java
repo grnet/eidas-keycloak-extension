@@ -83,6 +83,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import gr.grnet.keycloak.idp.forms.CitizenCountrySelectorAuthenticator;
+import gr.grnet.keycloak.idp.forms.CitizenCountrySelectorAuthenticatorFactory;
 import gr.grnet.keycloak.idp.saml.EidasAuthnExtensionGenerator;
 import gr.grnet.keycloak.idp.saml.EidasJaxrsSAML2BindingBuilder;
 import gr.grnet.keycloak.idp.saml.EidasNodeCountryExtensionGenerator;
@@ -179,6 +180,12 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 			// eIDAS specific action, try to figure out citizen's country. This should be set using a CitizenCountrySelectorAuthenticatorForm
 			// in the login flow.
 			String country = request.getAuthenticationSession().getAuthNote(CitizenCountrySelectorAuthenticator.CITIZEN_COUNTRY);
+			if (country == null) {
+				String requestedCountry = request.getAuthenticationSession().getClientNote("client_request_param_country");
+				if(requestedCountry != null && this.validateCountry(request, requestedCountry)){
+					country = requestedCountry;
+				}
+			}
 			logger.debug("Citizen Country selected=" + country);
 
 			EidasJaxrsSAML2BindingBuilder binding = new EidasJaxrsSAML2BindingBuilder(session)
@@ -443,4 +450,16 @@ public class EidasSAMLIdentityProvider extends SAMLIdentityProvider {
 		extensions.addExtension(new EidasNodeCountryExtensionGenerator(nodeCountry));
 	}
 
+	public boolean validateCountry(AuthenticationRequest request, String country) {
+		String countriesList = request.getRealm().getAuthenticatorConfigByAlias("Countries").getConfig()
+				.get(CitizenCountrySelectorAuthenticatorFactory.CITIZEN_COUNTRY_LIST);
+		List<String> countries;
+
+		if (countriesList == null) {
+			countries = new ArrayList<>();
+		} else {
+			countries = Arrays.asList(countriesList.split("##"));
+		}
+		return countries.contains(country);
+	}
 }
