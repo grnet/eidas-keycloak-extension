@@ -39,7 +39,7 @@ import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.namespace.QName;
 
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.annotations.cache.NoCache;
+import org.jboss.resteasy.reactive.NoCache;
 import org.keycloak.crypto.KeyUse;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -535,7 +535,7 @@ public class EidasSAMLEndpoint {
                 }
 
                 //Map<String, String> notes = new HashMap<>();
-                BrokeredIdentityContext identity = new BrokeredIdentityContext(principal);
+                BrokeredIdentityContext identity = new BrokeredIdentityContext(principal,config);
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
                 identity.getContextData().put(SAML_ASSERTION, assertion);
                 identity.setAuthenticationSession(authSession);
@@ -586,7 +586,6 @@ public class EidasSAMLEndpoint {
 
                 String brokerUserId = config.getAlias() + "." + principal;
                 identity.setBrokerUserId(brokerUserId);
-                identity.setIdpConfig(config);
                 identity.setIdp(provider);
                 if (authn != null && authn.getSessionIndex() != null) {
                     identity.setBrokerSessionId(config.getAlias() + "." + authn.getSessionIndex());

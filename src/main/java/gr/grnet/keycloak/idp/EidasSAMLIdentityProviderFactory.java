@@ -122,9 +122,9 @@ public class EidasSAMLIdentityProviderFactory implements IdentityProviderFactory
 	}
 
     @Override
-    public Map<String, String> parseConfig(KeycloakSession session, InputStream inputStream) {
+    public Map<String, String> parseConfig(KeycloakSession session, String config) {
         try {
-            EntityDescriptorType entityType = SAMLMetadataUtil.parseEntityDescriptorType(inputStream);
+            EntityDescriptorType entityType = SAMLMetadataUtil.parseEntityDescriptorType(config);
             IDPSSODescriptorType idpDescriptor = SAMLMetadataUtil.locateIDPSSODescriptorType(entityType);
 
             if (idpDescriptor != null) {

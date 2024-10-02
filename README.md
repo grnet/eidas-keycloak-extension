@@ -41,6 +41,7 @@ Download the latest release jar from the releases page. Then deploy it in keyclo
 | 0.9               | 22.0.3 (partial admin UI) |
 | 0.10              | 23.0.2 (partial admin UI) |
 | 0.11              | 24.0.4 |
+| 0.12              | 25.0.6 |
 
 Depending on the version of keycloak (between 18 and 23) the admin UI might not show the extra attributes and you might need to configure the 
 extension by editing the configuration inside the DB. 
