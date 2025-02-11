@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gr.grnet</groupId>
 	<artifactId>keycloak-eidas-idp</artifactId>
-	<version>0.13-SNAPSHOT</version>
+	<version>0.14-SNAPSHOT</version>
 
 	<description>Keycloak eIDAS Identity Provider Extension</description>
 	<url>https://github.com/grnet/eidas-keycloak-extension</url>
@@ -20,15 +20,15 @@
 		<url>https://github.com/grnet/eidas-keycloak-extension.git</url>
 		<connection>scm:git:git://github.com/grnet/eidas-keycloak-extension.git</connection>
 		<developerConnection>scm:git:git@github.com:grnet/eidas-keycloak-extension.git</developerConnection>
-	  <tag>HEAD</tag>
-        </scm>
+		<tag>HEAD</tag>
+	</scm>
 	<issueManagement>
 		<url>https://github.com/grnet/eidas-keycloak-extension/issues</url>
 	</issueManagement>
 
 	<properties>
 		<javaVersion>17</javaVersion>
-		<keycloakVersion>25.0.6</keycloakVersion>
+		<keycloakVersion>26.0.0</keycloakVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
