@@ -33,7 +33,6 @@ import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.forms.login.LoginFormsPages;
 import org.keycloak.forms.login.MessageType;
 import org.keycloak.forms.login.freemarker.AuthenticatorConfiguredMethod;
-import org.keycloak.forms.login.freemarker.LoginFormsUtil;
 import org.keycloak.forms.login.freemarker.model.AuthenticationContextBean;
 import org.keycloak.forms.login.freemarker.model.ClientBean;
 import org.keycloak.forms.login.freemarker.model.IdentityProviderBean;
@@ -43,7 +42,6 @@ import org.keycloak.forms.login.freemarker.model.RequiredActionUrlFormatterMetho
 import org.keycloak.forms.login.freemarker.model.UrlBean;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.Constants;
-import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -74,31 +72,31 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 
 	public static final String EIDAS_SAML_POST_FORM = "eidas-saml-post-form.ftl";
 
-    protected String accessCode;
-    protected Response.Status status;
-    protected List<AuthorizationDetails> clientScopesRequested;
-    protected Map<String, String> httpResponseHeaders = new HashMap<>();
-    protected URI actionUri;
-    protected String execution;
-    protected AuthenticationFlowContext context;
+	protected String accessCode;
+	protected Response.Status status;
+	protected List<AuthorizationDetails> clientScopesRequested;
+	protected Map<String, String> httpResponseHeaders = new HashMap<>();
+	protected URI actionUri;
+	protected String execution;
+	protected AuthenticationFlowContext context;
 
-    protected List<FormMessage> messages = null;
-    protected MessageType messageType = MessageType.ERROR;
+	protected List<FormMessage> messages = null;
+	protected MessageType messageType = MessageType.ERROR;
 
-    protected MultivaluedMap<String, String> formData;
-	
-    protected KeycloakSession session;
-    /** authenticationSession can be null for some renderings, mainly error pages */
-    protected AuthenticationSessionModel authenticationSession;
-    protected RealmModel realm;
-    protected ClientModel client;
-    protected UriInfo uriInfo;
+	protected MultivaluedMap<String, String> formData;
 
-    protected FreeMarkerProvider freeMarker;
-    protected final Map<String, Object> attributes = new HashMap<>();
-    
-    protected UserModel user;
-	
+	protected KeycloakSession session;
+	/** authenticationSession can be null for some renderings, mainly error pages */
+	protected AuthenticationSessionModel authenticationSession;
+	protected RealmModel realm;
+	protected ClientModel client;
+	protected UriInfo uriInfo;
+
+	protected FreeMarkerProvider freeMarker;
+	protected final Map<String, Object> attributes = new HashMap<>();
+
+	protected UserModel user;
+
 	public EidasFreeMarkerLoginFormsProvider(KeycloakSession session) {
 		this.session = session;
 		this.freeMarker = session.getProvider(FreeMarkerProvider.class);
@@ -235,16 +233,17 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 		attributes.put("messagesPerField", messagesPerField);
 	}
 
-    protected String formatMessage(FormMessage message, Properties messagesBundle, Locale locale) {
-        if (message == null)
-            return null;
-        if (messagesBundle.containsKey(message.getMessage())) {
-            return new MessageFormat(messagesBundle.getProperty(message.getMessage()), locale).format(message.getParameters());
-        } else {
-            return message.getMessage();
-        }
-    }
-	
+	protected String formatMessage(FormMessage message, Properties messagesBundle, Locale locale) {
+		if (message == null)
+			return null;
+		if (messagesBundle.containsKey(message.getMessage())) {
+			return new MessageFormat(messagesBundle.getProperty(message.getMessage()), locale)
+					.format(message.getParameters());
+		} else {
+			return message.getMessage();
+		}
+	}
+
 	/**
 	 * Create common attributes used in all templates.
 	 * 
@@ -273,11 +272,10 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 		if (realm != null) {
 			attributes.put("realm", new RealmBean(realm));
 
-			List<IdentityProviderModel> identityProviders = LoginFormsUtil
-					.filterIdentityProvidersForTheme(realm.getIdentityProvidersStream(), session, context);
-			attributes.put("social",
-					new IdentityProviderBean(realm, session, identityProviders, baseUriWithCodeAndClientId));
+			IdentityProviderBean idpBean = new IdentityProviderBean(session, realm, baseUriWithCodeAndClientId,
+					context);
 
+			attributes.put("social", idpBean);
 			attributes.put("url", new UrlBean(realm, theme, baseUri, this.actionUri));
 			attributes.put("requiredActionUrl", new RequiredActionUrlFormatterMethod(realm, baseUri));
 			attributes.put("auth", new AuthenticationContextBean(context, page));
@@ -287,20 +285,20 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 				UriBuilder b;
 				if (page != null) {
 					switch (page) {
-					case LOGIN:
-					case LOGIN_USERNAME:
-					case X509_CONFIRM:
-						b = UriBuilder.fromUri(Urls.realmLoginPage(baseUri, realm.getName()));
-						break;
-					case REGISTER:
-						b = UriBuilder.fromUri(Urls.realmRegisterPage(baseUri, realm.getName()));
-						break;
-					case LOGOUT_CONFIRM:
-						b = UriBuilder.fromUri(Urls.logoutConfirm(baseUri, realm.getName()));
-						break;
-					default:
-						b = UriBuilder.fromUri(baseUri).path(uriInfo.getPath());
-						break;
+						case LOGIN:
+						case LOGIN_USERNAME:
+						case X509_CONFIRM:
+							b = UriBuilder.fromUri(Urls.realmLoginPage(baseUri, realm.getName()));
+							break;
+						case REGISTER:
+							b = UriBuilder.fromUri(Urls.realmRegisterPage(baseUri, realm.getName()));
+							break;
+						case LOGOUT_CONFIRM:
+							b = UriBuilder.fromUri(Urls.logoutConfirm(baseUri, realm.getName()));
+							break;
+						default:
+							b = UriBuilder.fromUri(baseUri).path(uriInfo.getPath());
+							break;
 					}
 				} else {
 					b = UriBuilder.fromUri(baseUri).path(uriInfo.getPath());
@@ -351,11 +349,11 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 		}
 	}
 
-    @Override
-    public EidasFreeMarkerLoginFormsProvider setFormData(MultivaluedMap<String, String> formData) {
-        this.formData = formData;
-        return this;
-    }
+	@Override
+	public EidasFreeMarkerLoginFormsProvider setFormData(MultivaluedMap<String, String> formData) {
+		this.formData = formData;
+		return this;
+	}
 
 	@Override
 	public void close() {
