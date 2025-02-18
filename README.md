@@ -26,8 +26,11 @@ following documents for the v1.2 technical specifications:
 
 # Installation
 
-Download the latest release jar from the releases page. Then deploy it in keycloak by copying it at folder
-`KEYCLOAK_HOME/standalone/deployments/`. See the keycloak [documentation](https://www.keycloak.org/docs/latest/server_installation/index.html#distribution-directory-structure) for the directory structure of the keycloak server.
+Download the latest release jar from the releases page. Then deploy it in keycloak by copying it at folder:
+- Before Keycloak version 18.0.1 into `KEYCLOAK_HOME/standalone/deployments/`
+- 18.0.1 and higher into `KEYCLOAK_HOME/providers/` 
+
+See the keycloak [documentation](https://www.keycloak.org/server/configuration-provider) for the configuring providers.
 
 # Compatibility
 
