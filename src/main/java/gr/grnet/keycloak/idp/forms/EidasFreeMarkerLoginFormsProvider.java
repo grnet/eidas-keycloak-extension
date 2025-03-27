@@ -96,6 +96,7 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 	protected final Map<String, Object> attributes = new HashMap<>();
 
 	protected UserModel user;
+	protected String lang;
 
 	public EidasFreeMarkerLoginFormsProvider(KeycloakSession session) {
 		this.session = session;
@@ -104,6 +105,7 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 		this.realm = session.getContext().getRealm();
 		this.client = session.getContext().getClient();
 		this.uriInfo = session.getContext().getUri();
+		this.lang = Locale.ENGLISH.toLanguageTag();
 	}
 
 	@Override
@@ -312,7 +314,11 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 					b.queryParam(Constants.KEY, authenticationSession.getAuthNote(Constants.KEY));
 				}
 
-				attributes.put("locale", new LocaleBean(realm, locale, b, messagesBundle));
+				final var localeBean = new LocaleBean(realm, locale, b, messagesBundle);
+				attributes.put("locale", localeBean);
+
+				lang = localeBean.getCurrentLanguageTag();
+				attributes.put("lang", lang);
 			}
 		}
 		if (realm != null && user != null && session != null) {
