@@ -26,7 +26,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
 
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
@@ -59,7 +61,6 @@ import org.keycloak.theme.beans.MessageFormatterMethod;
 import org.keycloak.theme.beans.MessagesPerFieldBean;
 import org.keycloak.theme.freemarker.FreeMarkerProvider;
 import org.keycloak.utils.MediaType;
-import org.keycloak.utils.StringUtil;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
@@ -84,6 +85,7 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 	protected MessageType messageType = MessageType.ERROR;
 
 	protected MultivaluedMap<String, String> formData;
+	protected boolean detachedAuthSession = false;
 
 	protected KeycloakSession session;
 	/** authenticationSession can be null for some renderings, mainly error pages */
@@ -93,10 +95,12 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 	protected UriInfo uriInfo;
 
 	protected FreeMarkerProvider freeMarker;
-	protected final Map<String, Object> attributes = new HashMap<>();
 
 	protected UserModel user;
 	protected String lang;
+	
+    protected final Map<String, Object> attributes = new HashMap<>();
+    private Function<Map<String, Object>, Map<String, Object>> attributeMapper;
 
 	public EidasFreeMarkerLoginFormsProvider(KeycloakSession session) {
 		this.session = session;
@@ -186,27 +190,28 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 	 * @return message bundle for other use
 	 */
 	protected Properties handleThemeResources(Theme theme, Locale locale) {
-		Properties messagesBundle = new Properties();
-		try {
-			if (!StringUtil.isNotBlank(realm.getDefaultLocale())) {
-				messagesBundle.putAll(realm.getRealmLocalizationTextsByLocale(realm.getDefaultLocale()));
-			}
-			messagesBundle.putAll(theme.getMessages(locale));
-			messagesBundle.putAll(realm.getRealmLocalizationTextsByLocale(locale.toLanguageTag()));
-			attributes.put("msg", new MessageFormatterMethod(locale, messagesBundle));
-			attributes.put("advancedMsg", new AdvancedMessageFormatterMethod(locale, messagesBundle));
-		} catch (IOException e) {
-			logger.warn("Failed to load messages", e);
-			messagesBundle = new Properties();
-		}
+		Properties messagesBundle;
+        try {
+            messagesBundle = theme.getEnhancedMessages(realm, locale);
+            Map<Object, Object> msgParams = new HashMap<>(attributes);
+            msgParams.putAll(messagesBundle);
+            attributes.put("msg", new MessageFormatterMethod(locale, msgParams));
+            attributes.put("advancedMsg", new AdvancedMessageFormatterMethod(locale, messagesBundle));
+        } catch (IOException e) {
+            logger.warn("Failed to load messages", e);
+            messagesBundle = new Properties();
+        }
 
-		try {
-			attributes.put("properties", theme.getProperties());
-		} catch (IOException e) {
-			logger.warn("Failed to load properties", e);
-		}
+        try {
+            Properties properties = theme.getProperties();
+            attributes.put("properties", properties);
+            attributes.put("darkMode", "true".equals(properties.getProperty("darkMode"))
+                    && realm.getAttribute("darkMode", true));
+        } catch (IOException e) {
+            logger.warn("Failed to load properties", e);
+        }
 
-		return messagesBundle;
+        return messagesBundle;
 	}
 
 	/**
@@ -342,17 +347,23 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 	 */
 	protected Response processTemplate(Theme theme, String templateName, Locale locale) {
 		try {
-			String result = freeMarker.processTemplate(attributes, templateName, theme);
-			Response.ResponseBuilder builder = Response.status(status == null ? Response.Status.OK : status)
-					.type(MediaType.TEXT_HTML_UTF_8_TYPE).language(locale).entity(result);
-			for (Map.Entry<String, String> entry : httpResponseHeaders.entrySet()) {
-				builder.header(entry.getKey(), entry.getValue());
-			}
-			return builder.build();
-		} catch (FreeMarkerException e) {
-			logger.error("Failed to process template", e);
-			return Response.serverError().build();
-		}
+            Map<String, Object> attributes = Optional.ofNullable(attributeMapper).orElse(Function.identity()).apply(this.attributes);
+            if (!attributes.containsKey("templateName")) {
+                attributes.put("templateName", templateName);
+            }
+
+            attributes.put("pageId", templateName.substring(0, templateName.length() - 4));
+
+            String result = freeMarker.processTemplate(attributes, templateName, theme);
+            Response.ResponseBuilder builder = Response.status(status == null ? Response.Status.OK : status).type(MediaType.TEXT_HTML_UTF_8_TYPE).language(locale).entity(result);
+            for (Map.Entry<String, String> entry : httpResponseHeaders.entrySet()) {
+                builder.header(entry.getKey(), entry.getValue());
+            }
+            return builder.build();
+        } catch (FreeMarkerException e) {
+            logger.error("Failed to process template", e);
+            return Response.serverError().build();
+        }
 	}
 
 	@Override
