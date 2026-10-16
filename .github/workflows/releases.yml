@@ -1,0 +1,53 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and create release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn --batch-mode clean verify
+
+      - name: Resolve release artifact
+        id: artifact
+        shell: bash
+        run: |
+          project_version="$(mvn --batch-mode help:evaluate -Dexpression=project.version -q -DforceStdout)"
+          jar_path="target/keycloak-eidas-idp-${project_version}.jar"
+
+          if [[ ! -f "${jar_path}" ]]; then
+            echo "Expected release artifact not found: ${jar_path}" >&2
+            exit 1
+          fi
+
+          echo "jar_path=${jar_path}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          JAR_PATH: ${{ steps.artifact.outputs.jar_path }}
+        run: |
+          gh release create "${TAG_NAME}" "${JAR_PATH}" \
+            --verify-tag \
+            --title "Release ${TAG_NAME}" \
+            --generate-notes

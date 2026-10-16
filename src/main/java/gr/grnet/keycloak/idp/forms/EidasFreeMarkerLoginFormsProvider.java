@@ -201,7 +201,10 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 		}
 
 		try {
-			attributes.put("properties", theme.getProperties());
+			Properties properties = theme.getProperties();
+			attributes.put("properties", properties);
+			attributes.put("darkMode", "true".equals(properties.getProperty("darkMode"))
+					&& realm.getAttribute("darkMode", true));
 		} catch (IOException e) {
 			logger.warn("Failed to load properties", e);
 		}
@@ -318,7 +321,6 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 				attributes.put("locale", localeBean);
 
 				lang = localeBean.getCurrentLanguageTag();
-				attributes.put("lang", lang);
 			}
 		}
 		if (realm != null && user != null && session != null) {
@@ -329,6 +331,8 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 				&& authenticationSession.getClientNote(Constants.KC_ACTION_EXECUTING) != null) {
 			attributes.put("isAppInitiatedAction", true);
 		}
+
+		attributes.put("lang", lang);
 	}
 
 	/**
@@ -342,6 +346,7 @@ public class EidasFreeMarkerLoginFormsProvider implements EidasLoginFormsProvide
 	 */
 	protected Response processTemplate(Theme theme, String templateName, Locale locale) {
 		try {
+			attributes.put("pageId", templateName.substring(0, templateName.length() - 4));
 			String result = freeMarker.processTemplate(attributes, templateName, theme);
 			Response.ResponseBuilder builder = Response.status(status == null ? Response.Status.OK : status)
 					.type(MediaType.TEXT_HTML_UTF_8_TYPE).language(locale).entity(result);
