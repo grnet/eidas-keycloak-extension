@@ -27,8 +27,8 @@
 	</issueManagement>
 
 	<properties>
-		<javaVersion>17</javaVersion>
-		<keycloakVersion>26.1.0</keycloakVersion>
+		<javaVersion>21</javaVersion>
+		<keycloakVersion>26.8.1</keycloakVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -56,7 +56,7 @@
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-rest</artifactId>
-			<version>3.15.1</version>
+			<version>3.40.1</version>
 		</dependency>
 	</dependencies>
 

@@ -44,6 +44,7 @@ import org.keycloak.crypto.KeyUse;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.provider.UserAuthenticationIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -147,7 +148,7 @@ public class EidasSAMLEndpoint {
     protected final RealmModel realm;
     protected EventBuilder event;
     protected final EidasSAMLIdentityProviderConfig config;
-    protected final IdentityProvider.AuthenticationCallback callback;
+    protected final UserAuthenticationIdentityProvider.AuthenticationCallback callback;
     protected final EidasSAMLIdentityProvider provider;
     private final DestinationValidator destinationValidator;
 
@@ -155,7 +156,7 @@ public class EidasSAMLEndpoint {
     private ClientConnection clientConnection;
     private HttpHeaders headers;
 
-    public EidasSAMLEndpoint(KeycloakSession session, EidasSAMLIdentityProvider provider, EidasSAMLIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator
+    public EidasSAMLEndpoint(KeycloakSession session, EidasSAMLIdentityProvider provider, EidasSAMLIdentityProviderConfig config, UserAuthenticationIdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator
     		) {
         this.realm = session.getContext().getRealm();
         this.config = config;
@@ -436,10 +437,10 @@ public class EidasSAMLEndpoint {
 
                 if (! isSuccessfulSamlResponse(responseType)) {
                     String statusMessage = responseType.getStatus() == null || responseType.getStatus().getStatusMessage() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
-                    return callback.error(statusMessage);
+                    return callback.error(config, statusMessage);
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
-                    return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                    return callback.error(config, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
                 }
 
                 boolean assertionIsEncrypted = AssertionUtil.isAssertionEncrypted(responseType);
