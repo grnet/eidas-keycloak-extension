@@ -770,7 +770,7 @@ public class EidasSAMLEndpoint {
         @Override
         protected void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException {
             KeyLocator locator = getIDPKeyLocator();
-            SamlProtocolUtils.verifyRedirectSignature(documentHolder, locator, session.getContext().getUri(), key);
+            SamlProtocolUtils.verifyRedirectSignature(documentHolder, locator, session.getContext().getUri().getQueryParameters(false), key);
         }
 
 
